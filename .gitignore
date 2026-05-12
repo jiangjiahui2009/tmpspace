@@ -1,0 +1,30 @@
+# Swift / Xcode
+.build/
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+*.xcuserdata
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.o
+*.dylib
+*.dSYM/
+
+# Claude Code
+.claude/
+
+# Secrets
+.env
+*.xcconfig
+!MarkEdit-main/Build.xcconfig

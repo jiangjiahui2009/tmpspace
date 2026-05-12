@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Menu bar only: hide from Dock and App Switcher -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- Prevent app from appearing in "Force Quit" dialog -->
+    <key>LSBackgroundOnly</key>
+    <false/>
+
+    <!-- Allow the app to be a foreground app with windows when needed -->
+    <key>NSSupportsAutomaticTermination</key>
+    <false/>
+</dict>
+</plist>

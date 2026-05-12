@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- ===== Menu Bar App Configuration ===== -->
+    <!-- Hide from Dock and App Switcher when no document windows are open -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- ===== Bundle Identity ===== -->
+    <key>CFBundleDisplayName</key>
+    <string>轻闪框</string>
+    <key>CFBundleName</key>
+    <string>Flashbox</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.flashbox.app</string>
+
+    <!-- ===== Document Types (inherited from MarkEdit) ===== -->
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Markdown</string>
+            <key>LSTypeIsPackage</key>
+            <false/>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>md</string>
+                <string>markdown</string>
+                <string>mdown</string>
+            </array>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>net.daringfireball.markdown</string>
+                <string>public.markdown</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- ===== Global Shortcut Registration ===== -->
+    <key>NSGlobalShortcut</key>
+    <dict>
+        <key>key</key>
+        <string> </string>
+        <key>modifiers</key>
+        <string>function</string>
+    </dict>
+
+    <!-- ===== Other ===== -->
+    <key>NSSupportsAutomaticTermination</key>
+    <false/>
+</dict>
+</plist>

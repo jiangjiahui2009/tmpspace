@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./src/@types"],
+    "module": "esnext",
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    "composite": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "importHelpers": true,
+    "skipLibCheck": true
+  }
+}

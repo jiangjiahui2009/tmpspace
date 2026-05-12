@@ -1,0 +1,298 @@
+//
+//  AppRuntimeConfig.swift
+//  MarkEditMac
+//
+//  Created by cyan on 8/9/24.
+//
+
+import AppKit
+import MarkEditCore
+import MarkEditKit
+
+/// Preferences for pro users, not directly visible in the Settings panel.
+///
+/// The underlying file is stored as "settings.json" in AppCustomization.
+enum AppRuntimeConfig {
+  struct Definition: Codable {
+    enum VisualEffectType: String, Codable {
+      case glass = "glass"
+      case blur = "blur"
+    }
+
+    enum UpdateBehavior: String, Codable {
+      case quiet = "quiet"
+      case notify = "notify"
+      case never = "never"
+    }
+
+    struct HotKey: Codable {
+      let key: String
+      let modifiers: [String]
+    }
+
+    let autoCharacterPairs: Bool?
+    let autoSaveWhenIdle: Bool?
+    let closeAlwaysConfirmsChanges: Bool?
+    let restoreLastSelection: Bool?
+    let indentBehavior: EditorIndentBehavior?
+    let writingToolsBehavior: String?
+    let headerFontSizeDiffs: [Double]?
+    let visibleWhitespaceCharacter: String?
+    let visibleLineBreakCharacter: String?
+    let searchNormalizers: [String: String]?
+    let nativeSearchQuerySync: Bool?
+    let customToolbarItems: [CustomToolbarItem]?
+    let useClassicInterface: Bool?
+    let visualEffectType: VisualEffectType?
+    let updateBehavior: UpdateBehavior?
+    let checksForUpdates: Bool? // [Deprecated] Kept for backward compatibility
+    let defaultOpenDirectory: String?
+    let defaultSaveDirectory: String?
+    let disableOpenPanelOptions: Bool?
+    let disableCorsRestrictions: Bool?
+    let preferredTerminalApp: String?
+    let mainWindowHotKey: HotKey?
+
+    enum CodingKeys: String, CodingKey {
+      case autoCharacterPairs = "editor.autoCharacterPairs"
+      case autoSaveWhenIdle = "editor.autoSaveWhenIdle"
+      case closeAlwaysConfirmsChanges = "editor.closeAlwaysConfirmsChanges"
+      case restoreLastSelection = "editor.restoreLastSelection"
+      case indentBehavior = "editor.indentBehavior"
+      case writingToolsBehavior = "editor.writingToolsBehavior"
+      case headerFontSizeDiffs = "editor.headerFontSizeDiffs"
+      case visibleWhitespaceCharacter = "editor.visibleWhitespaceCharacter"
+      case visibleLineBreakCharacter = "editor.visibleLineBreakCharacter"
+      case searchNormalizers = "editor.searchNormalizers"
+      case nativeSearchQuerySync = "editor.nativeSearchQuerySync"
+      case customToolbarItems = "editor.customToolbarItems"
+      case useClassicInterface = "general.useClassicInterface"
+      case visualEffectType = "general.visualEffectType"
+      case updateBehavior = "general.updateBehavior"
+      case checksForUpdates = "general.checksForUpdates"
+      case defaultOpenDirectory = "general.defaultOpenDirectory"
+      case defaultSaveDirectory = "general.defaultSaveDirectory"
+      case disableOpenPanelOptions = "general.disableOpenPanelOptions"
+      case disableCorsRestrictions = "general.disableCorsRestrictions"
+      case preferredTerminalApp = "general.preferredTerminalApp"
+      case mainWindowHotKey = "general.mainWindowHotKey"
+    }
+  }
+
+  static let jsonLiteral: String = {
+    {
+      guard let fileData, (try? JSONSerialization.jsonObject(with: fileData, options: [])) != nil else {
+        Logger.log(.error, "Invalid json file was found at: \(AppCustomization.settings.fileURL)")
+        return nil
+      }
+
+      return fileData.toString()
+    }() ?? "{}"
+  }()
+
+  static var jsonObject: [String: Any] {
+    guard let data = fileData, let object = try? JSONSerialization.jsonObject(with: data) else {
+      return [:]
+    }
+
+    return (object as? [String: Any]) ?? [:]
+  }
+
+  static var restoreLastSelection: Bool {
+    // Restore selection from previous session by default
+    currentDefinition?.restoreLastSelection ?? true
+  }
+
+  static var autoCharacterPairs: Bool {
+    // Enable auto character pairs by default
+    currentDefinition?.autoCharacterPairs ?? true
+  }
+
+  static var autoSaveWhenIdle: Bool {
+    if closeAlwaysConfirmsChanges == true {
+      // If changes require confirmation, they are not saved periodically
+      return false
+    }
+
+    return currentDefinition?.autoSaveWhenIdle ?? false
+  }
+
+  static var closeAlwaysConfirmsChanges: Bool? {
+    // Changes are saved automatically by default
+    currentDefinition?.closeAlwaysConfirmsChanges
+  }
+
+  static var indentBehavior: EditorIndentBehavior {
+    // No paragraph or line level indentation by default
+    currentDefinition?.indentBehavior ?? .never
+  }
+
+  static var writingToolsBehavior: NSWritingToolsBehavior? {
+    switch currentDefinition?.writingToolsBehavior {
+    case "none": return NSWritingToolsBehavior.none
+    case "complete": return NSWritingToolsBehavior.complete
+    case "limited": return NSWritingToolsBehavior.limited
+    default: return nil
+    }
+  }
+
+  static var headerFontSizeDiffs: [Double]? {
+    // Rely on CoreEditor definitions by default
+    currentDefinition?.headerFontSizeDiffs
+  }
+
+  static var visibleWhitespaceCharacter: String? {
+    currentDefinition?.visibleWhitespaceCharacter
+  }
+
+  static var visibleLineBreakCharacter: String? {
+    currentDefinition?.visibleLineBreakCharacter
+  }
+
+  static var searchNormalizers: [String: String]? {
+    currentDefinition?.searchNormalizers
+  }
+
+  static var nativeSearchQuerySync: Bool {
+    currentDefinition?.nativeSearchQuerySync ?? false
+  }
+
+  static var customToolbarItems: [CustomToolbarItem] {
+    currentDefinition?.customToolbarItems ?? []
+  }
+
+  static var useClassicInterface: Bool {
+    currentDefinition?.useClassicInterface ?? false
+  }
+
+  static var visualEffectType: Definition.VisualEffectType {
+    currentDefinition?.visualEffectType ?? .glass
+  }
+
+  static var updateBehavior: Definition.UpdateBehavior {
+    guard currentDefinition?.checksForUpdates ?? true else {
+      return .never
+    }
+
+    return currentDefinition?.updateBehavior ?? .quiet
+  }
+
+  static var defaultOpenDirectory: String? {
+    // Unspecified by default
+    currentDefinition?.defaultOpenDirectory
+  }
+
+  static var defaultSaveDirectory: String? {
+    // Unspecified by default
+    currentDefinition?.defaultSaveDirectory
+  }
+
+  static var disableOpenPanelOptions: Bool {
+    currentDefinition?.disableOpenPanelOptions ?? defaultDisableOpenPanelOptions
+  }
+
+  static var disableCorsRestrictions: Bool {
+    // Enforce CORS restrictions by default
+    currentDefinition?.disableCorsRestrictions ?? false
+  }
+
+  static var preferredTerminalApp: String? {
+    // Use auto-detection by default
+    currentDefinition?.preferredTerminalApp
+  }
+
+  static var mainWindowHotKey: Definition.HotKey? {
+    // Shift-Command-Option-M by default
+    currentDefinition?.mainWindowHotKey
+  }
+
+  static var defaultContents: String {
+    encode(definition: defaultDefinition)?.toString() ?? ""
+  }
+}
+
+struct CustomToolbarItem: Codable {
+  let title: String
+  let icon: String
+  let actionName: String?
+  let menuName: String?
+
+  var identifier: NSToolbarItem.Identifier {
+    let components = [
+      title,
+      icon,
+      actionName,
+      menuName,
+    ].compactMap { $0 }.joined(separator: "-")
+
+    let prefix = "app.markedit.custom"
+    return NSToolbarItem.Identifier(rawValue: "\(prefix).\(components.sha256Hash)")
+  }
+}
+
+// MARK: - Private
+
+private extension AppRuntimeConfig {
+  /**
+   The raw JSON data of the settings.json file.
+   */
+  static let fileData = try? Data(contentsOf: AppCustomization.settings.fileURL)
+
+  static let defaultDefinition = Definition(
+    autoCharacterPairs: true,
+    autoSaveWhenIdle: false,
+    closeAlwaysConfirmsChanges: nil,
+    restoreLastSelection: nil,
+    indentBehavior: .never,
+    writingToolsBehavior: nil, // [macOS 15] Complete mode still has lots of bugs
+    headerFontSizeDiffs: nil,
+    visibleWhitespaceCharacter: nil,
+    visibleLineBreakCharacter: nil,
+    searchNormalizers: nil,
+    nativeSearchQuerySync: false,
+    customToolbarItems: [],
+    useClassicInterface: nil,
+    visualEffectType: nil,
+    updateBehavior: .quiet,
+    checksForUpdates: nil,
+    defaultOpenDirectory: nil,
+    defaultSaveDirectory: nil,
+    disableOpenPanelOptions: defaultDisableOpenPanelOptions,
+    disableCorsRestrictions: nil,
+    preferredTerminalApp: nil,
+    mainWindowHotKey: .init(key: "M", modifiers: ["Shift", "Command", "Option"])
+  )
+
+  static let currentDefinition: Definition? = {
+    guard let fileData else {
+      Logger.log(.error, "Missing settings.json to proceed")
+      return nil
+    }
+
+    guard let definition = try? JSONDecoder().decode(Definition.self, from: fileData) else {
+      Logger.log(.error, "Invalid json object was found: \(fileData)")
+      return nil
+    }
+
+    return definition
+  }()
+
+  static func encode(definition: Definition) -> Data? {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+
+    let jsonData = try? encoder.encode(definition)
+    Logger.assert(jsonData != nil, "Failed to encode object: \(definition)")
+
+    return jsonData
+  }
+
+  static var defaultDisableOpenPanelOptions: Bool {
+    // [macOS 26] Revisit this later, NSOpenPanel.accessoryView can significantly slow down the file opening process
+    if #available(macOS 26.0, *) {
+      return true
+    }
+
+    return false
+  }
+}

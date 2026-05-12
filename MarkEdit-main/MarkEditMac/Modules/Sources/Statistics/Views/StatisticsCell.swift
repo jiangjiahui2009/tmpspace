@@ -1,0 +1,34 @@
+//
+//  StatisticsCell.swift
+//
+//  Created by cyan on 8/26/23.
+//
+
+import SwiftUI
+
+struct StatisticsCell: View {
+  static let cellHeight: Double = 32
+  static let rowHeight: Double = cellHeight + 1 // 1pt divider
+
+  let iconName: String
+  let titleText: String
+  let valueText: String
+
+  var body: some View {
+    HStack(alignment: .center, spacing: 4) {
+      Image(systemName: iconName)
+        .frame(width: 28)
+        .foregroundColor(.gray)
+      Text(titleText)
+        .fixedSize()
+      Text(valueText)
+        .fontWeight(.semibold)
+        .lineLimit(1)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+    .accessibilityElement()
+    .accessibilityLabel([titleText, valueText].joined(separator: " "))
+    .frame(height: Self.cellHeight)
+    Divider()
+  }
+}

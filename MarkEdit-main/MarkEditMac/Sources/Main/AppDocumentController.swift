@@ -1,0 +1,91 @@
+//
+//  AppDocumentController.swift
+//  MarkEditMac
+//
+//  Created by cyan on 10/14/24.
+//
+
+import AppKit
+import MarkEditKit
+
+/**
+ Subclass of `NSDocumentController` to allow customizations.
+
+ NSDocumentController.shared will be an instance of `AppDocumentController` at runtime.
+ */
+final class AppDocumentController: NSDocumentController {
+  static var suggestedTextEncoding: EditorTextEncoding?
+  static var suggestedFilename: String?
+
+  override func beginOpenPanel(_ openPanel: NSOpenPanel, forTypes inTypes: [String]?) async -> Int {
+    if let defaultDirectory = AppRuntimeConfig.defaultOpenDirectory {
+      setOpenPanelDirectory(defaultDirectory)
+    }
+
+    if AppRuntimeConfig.disableOpenPanelOptions {
+      openPanel.accessoryView = nil
+    } else {
+      openPanel.accessoryView = EditorSaveOptionsView.wrapper(for: .openPanel) { [weak openPanel] result in
+        switch result {
+        case .textEncoding(let value):
+          Self.suggestedTextEncoding = value
+        case .showHiddenFiles(let value):
+          openPanel?.showsHiddenFiles = value
+        default:
+          Logger.assertFail("Invalid change: \(result)")
+        }
+      }
+    }
+
+    Self.suggestedTextEncoding = nil
+    openPanel.showsHiddenFiles = AppPreferences.General.showHiddenFiles
+    openPanel.relayoutAccessoryView()
+
+    return await super.beginOpenPanel(openPanel, forTypes: inTypes)
+  }
+
+  override func openDocument(
+    withContentsOf url: URL,
+    display displayDocument: Bool,
+    completionHandler: @escaping (NSDocument?, Bool, (any Error)?) -> Void
+  ) {
+    if url.isBinaryFile {
+      // Dead loop prevention
+      if Bundle.main.isDefaultApp(toOpen: url) {
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+      } else {
+        NSWorkspace.shared.open(url)
+      }
+
+      // Ignore the default opening logic
+      return completionHandler(nil, false, nil)
+    }
+
+    Task { @MainActor in
+      // Ensure the preloader has a fully loaded editor before opening the document
+      await EditorPreloader.shared.prepareViewController()
+
+      super.openDocument(
+        withContentsOf: url,
+        display: displayDocument,
+        completionHandler: completionHandler
+      )
+    }
+  }
+
+  override func saveAllDocuments(_ sender: Any?) {
+    // The default implementation doesn't work
+    documents.forEach { $0.save(sender) }
+  }
+}
+
+// MARK: - Private
+
+private extension NSOpenPanel {
+  /// Re-layouts the accessory view to work around internal AppKit bugs.
+  ///
+  /// For example, the animation of opening documents will sometimes be skipped.
+  func relayoutAccessoryView() {
+    accessoryView?.needsLayout = true
+  }
+}
