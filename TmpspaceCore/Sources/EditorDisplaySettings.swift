@@ -21,7 +21,7 @@ public struct EditorDisplaySettings: Codable, Equatable, Sendable {
     /// Font style (e.g., `"normal"`, `"italic"`). `nil` means default style.
     public var fontStyle: String?
 
-    /// Font size in points. Default `14`.
+    /// Font size in points. Default `16`.
     public var fontSize: Double
 
     /// Syntax highlighting theme name (e.g. `"github-dark"`, `"xcode-light"`).

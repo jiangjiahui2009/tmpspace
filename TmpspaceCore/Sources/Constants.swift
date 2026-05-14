@@ -53,4 +53,6 @@ public enum Constants {
 extension Notification.Name {
     /// Posted when the user selects "偏好设置..." from the menu bar.
     public static let tmpspaceOpenPreferences = Notification.Name("TmpspaceOpenPreferences")
+    /// Posted when the user selects "新建编辑框" from the main menu (File > New).
+    public static let tmpspaceMenuCreatePanel = Notification.Name("TmpspaceMenuCreatePanel")
 }

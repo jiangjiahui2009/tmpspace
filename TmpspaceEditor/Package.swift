@@ -20,7 +20,8 @@ let package = Package(
         .target(
             name: "TmpspaceEditor",
             dependencies: ["TmpspaceCore"],
-            path: "Sources"
+            path: "Sources",
+            resources: [.process("Resources")]
         ),
     ]
 )

@@ -139,18 +139,14 @@ public actor PanelStorage: PanelStorageProtocol {
         let jsonData = try encoder.encode(panels)
         try createStorageDirectoryIfNeeded()
 
-        // Atomic write via temp file to avoid corruption on crash.
+        // Atomic write: write to temp, then replace in a single system call.
         let tempURL = storageFileURL.appendingPathExtension("tmp")
         if FileManager.default.fileExists(atPath: tempURL.path) {
             try? FileManager.default.removeItem(at: tempURL)
         }
 
         try jsonData.write(to: tempURL, options: .atomic)
-
-        if FileManager.default.fileExists(atPath: storageFileURL.path) {
-            try FileManager.default.removeItem(at: storageFileURL)
-        }
-        try FileManager.default.moveItem(at: tempURL, to: storageFileURL)
+        _ = try FileManager.default.replaceItemAt(storageFileURL, withItemAt: tempURL)
     }
 
     private nonisolated func createStorageDirectoryIfNeeded() throws {

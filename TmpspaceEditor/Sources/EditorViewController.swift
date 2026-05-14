@@ -312,12 +312,8 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
         // 1. Message handler / user content controller
         let controller = WKUserContentController()
 
-        // Override CodeMirror's highlightSpecialChars() static extension which renders
-        // non-breaking spaces, line separators, etc. with a red background. The extension
-        // is not wrapped in a Compartment so invisiblesBehavior:"never" can't disable it.
-        let cssOverride = ".cm-specialChar { background: none !important; color: inherit !important; }"
-        let specialCharScript = WKUserScript(source: cssOverride, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
-        controller.addUserScript(specialCharScript)
+        // (CSS fixes are now injected in onEditorReady via EditorBridge.injectStyleFixes(),
+        //  which runs AFTER CodeMirror's own stylesheet — WKUserScript would fire too early.)
 
         // 2. Web view configuration
         let config = WKWebViewConfiguration()
@@ -356,6 +352,26 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             editorLog("EditorBridge.onEditorReady fired — resetting editor + injecting drag handler")
             bridge?.resetEditor(text: "")
             bridge?.injectDragHandler()
+            // Inject CSS fixes and paste handler NOW — after CodeMirror's own
+            // stylesheet has loaded. WKUserScript runs too early.
+            bridge?.injectStyleFixes()
+            bridge?.injectPasteHandler()
+            // Re-apply display settings now that the JS bridge is fully initialized.
+            // The initial call from PanelManager may have fired before the WebView finished
+            // loading, causing the lineHeight CSS to be measured with stale font metrics.
+            // Re-applying forces CodeMirror to re-measure and keeps the gutter aligned.
+            let s = EditorDisplaySettings.load()
+            bridge?.setFontFace(family: s.fontFamily, weight: s.fontWeight, style: s.fontStyle)
+            bridge?.setFontSize(s.fontSize)
+            bridge?.setTheme(s.theme)
+            bridge?.setShowLineNumbers(s.showLineNumbers)
+            bridge?.setShowActiveLineIndicator(s.showActiveLineIndicator)
+            bridge?.setLineHeight(s.lineHeight)
+            // Wait for the system font to fully resolve, then re-measure so the
+            // gutter positions are calculated with the correct final font metrics.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                bridge?.remeasureLayout()
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 bridge?.focus()
             }
@@ -389,15 +405,22 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             guard checked else { return }  // Only play sound on check, not uncheck
             let settings = EditorDisplaySettings.load()
             guard settings.taskToggleSound else { return }
-            let soundPath = (NSHomeDirectory() as NSString)
-                .appendingPathComponent("Library/Application Support/Tmpspace/notify.wav")
-            if let sound = NSSound(contentsOfFile: soundPath, byReference: true) {
+            // Try the bundled notify.wav first, then system "Pop", then haptics.
+            var played = false
+            if let url = Bundle.module.url(forResource: "notify", withExtension: "wav"),
+               let sound = NSSound(contentsOf: url, byReference: true) {
                 sound.play()
-            } else {
-                NSHapticFeedbackManager.defaultPerformer.perform(
-                    .generic,
-                    performanceTime: .default
-                )
+                played = true
+            }
+            if !played {
+                if let sound = NSSound(named: "Pop") {
+                    sound.play()
+                } else {
+                    NSHapticFeedbackManager.defaultPerformer.perform(
+                        .generic,
+                        performanceTime: .default
+                    )
+                }
             }
         }
 
@@ -413,7 +436,13 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
     private func loadEditorHTML(into webView: WKWebView) {
         let indexPath = "\(distPath)/index.html"
         guard let rawHTML = try? String(contentsOfFile: indexPath, encoding: .utf8) else {
-            fatalError("Missing CoreEditor dist/index.html at path: \(indexPath)")
+            editorLog("ERROR: Missing CoreEditor dist/index.html at path: \(indexPath)")
+            let alert = NSAlert()
+            alert.alertStyle = .critical
+            alert.messageText = "编辑器加载失败"
+            alert.informativeText = "找不到 CoreEditor dist/index.html。\n\n路径: \(indexPath)"
+            alert.runModal()
+            return
         }
 
         // Build editor config from the user's persisted display settings.

@@ -162,6 +162,8 @@ final class EncryptionService: Sendable {
 
         let keyData = key.withUnsafeBytes { Data($0) }
         try keyData.write(to: url, options: [.atomic, .completeFileProtection])
+        // Restrict access so only the current user can read the key.
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
 }
 

@@ -102,6 +102,13 @@ final class AppBootstrap: NSObject {
             object: nil
         )
 
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCreatePanel),
+            name: .tmpspaceMenuCreatePanel,
+            object: nil
+        )
+
         blog("AppBootstrap init complete")
     }
 
@@ -133,6 +140,10 @@ final class AppBootstrap: NSObject {
         menuBarController.togglePanels()
     }
 
+    @objc private func handleCreatePanel() {
+        menuBarController.createNewPanel()
+    }
+
     /// Weak reference so we don't create duplicate windows.
     private weak var preferencesWindow: NSWindow?
 
@@ -158,6 +169,7 @@ final class AppBootstrap: NSObject {
             window.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: frame.size), display: false)
         }
         window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
         self.preferencesWindow = window
     }
 

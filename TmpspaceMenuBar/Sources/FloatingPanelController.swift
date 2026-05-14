@@ -724,7 +724,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         ])
 
         // Store the save panel reference on the popup for the action callback.
-        objc_setAssociatedObject(popup, "savePanel", savePanel, .OBJC_ASSOCIATION_ASSIGN)
+        objc_setAssociatedObject(popup, "savePanel", savePanel, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 
         return container
     }

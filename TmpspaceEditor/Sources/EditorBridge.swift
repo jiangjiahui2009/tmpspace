@@ -217,6 +217,48 @@ final class EditorBridge: NSObject, WKScriptMessageHandler {
         webView?.evaluateJavaScript(script)
     }
 
+    /// Inject CSS fixes that must run **after** CodeMirror's own stylesheet has loaded.
+    /// Called from `onEditorReady` so our rules always come last in the cascade.
+    func injectStyleFixes() {
+        let script = """
+        (function(){
+        var s=document.getElementById('ts-fixes');
+        if(!s){s=document.createElement('style');s.id='ts-fixes';document.head.appendChild(s);}
+        s.textContent='.cm-specialChar{display:none!important}';
+        })()
+        """
+        webView?.evaluateJavaScript(script)
+    }
+
+    /// WKWebView on macOS does not fire a proper `paste` event with `clipboardData`
+    /// for `contenteditable` elements — the platform inserts rich HTML instead of
+    /// plain text, collapsing `\\n` into spaces. This handler intercepts paste on
+    /// the editor's content DOM, reads the plain-text clipboard, and inserts it
+    /// through CodeMirror's transaction API so line breaks are preserved.
+    func injectPasteHandler() {
+        let script = """
+        (function(){
+        if(window.__tsPasteInstalled)return;
+        window.__tsPasteInstalled=true;
+        document.addEventListener('paste',function(e){
+            var cm=document.querySelector('.cm-content');
+            if(!cm||!cm.contains(e.target))return;
+            var view=window.editor;
+            if(!view)return;
+            // Only intervene when pasting into the editor area.
+            var plain=e.clipboardData&&e.clipboardData.getData('text/plain');
+            if(!plain)return;
+            e.preventDefault();
+            e.stopPropagation();
+            var from=view.state.selection.main.from;
+            view.dispatch(view.state.replaceSelection(plain));
+            view.focus();
+        },true);
+        })()
+        """
+        webView?.evaluateJavaScript(script)
+    }
+
     /// Set the editor font face, weight, and style.
     func setFontFace(family: String, weight: String?, style: String?) {
         var fontFaceJSON = "{\"family\":\(encodeJSON(family))"
@@ -246,9 +288,24 @@ final class EditorBridge: NSObject, WKScriptMessageHandler {
         webView?.evaluateJavaScript(script)
     }
 
+    /// Force CodeMirror to re-measure layout (line heights, gutter positions).
+    /// Call after font changes or when the gutter drifts from content lines.
+    func remeasureLayout() {
+        let script = "if(window.editor)window.editor.requestMeasure();"
+        webView?.evaluateJavaScript(script)
+    }
+
     /// Set the line-height multiplier (e.g. 1.4 / 1.6 / 1.8).
+    ///
+    /// After applying the config change we ask CodeMirror to re-measure layout
+    /// so the gutter stays aligned with content lines.
     func setLineHeight(_ height: Double) {
-        let script = "typeof webModules === 'object' ? webModules.config.setLineHeight({lineHeight:\(height)}) : undefined"
+        let script = """
+        (function(lh){
+        if(typeof webModules==='object')webModules.config.setLineHeight({lineHeight:lh});
+        if(window.editor)window.editor.requestMeasure();
+        })(\(height))
+        """
         webView?.evaluateJavaScript(script)
     }
 
@@ -487,7 +544,15 @@ public struct FileDropItem: Decodable, Sendable {
 private func encodeJSON(_ string: String) -> String {
     guard let data = try? JSONSerialization.data(withJSONObject: string, options: .fragmentsAllowed),
           let json = String(data: data, encoding: .utf8) else {
-        return "\"\""
+        // If we can't JSON-encode the string, fall back to a sanitised version:
+        // strip control characters and backslash-escape quotes / backslashes.
+        let sanitised = string
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\t", with: "\\t")
+        return "\"\(sanitised)\""
     }
     return json
 }

@@ -36,7 +36,7 @@ let package = Package(
                     "-Xlinker", "-sectcreate",
                     "-Xlinker", "__TEXT",
                     "-Xlinker", "__info_plist",
-                    "-Xlinker", "\("/Users/admin/Desktop/tmpspace/TmpspaceApp/Info.plist")",
+                    "-Xlinker", "Info.plist",
                 ]),
             ]
         ),

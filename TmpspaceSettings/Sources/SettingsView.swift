@@ -66,6 +66,10 @@ public struct SettingsView: View {
         }
         .frame(minWidth: 460, minHeight: 320)
         .scenePadding()
+        .onDisappear {
+            // Clean up the shortcut recording monitor if the window is closed mid-record.
+            stopShortcutRecording(cancelled: true)
+        }
     }
 
     // MARK: - General Tab

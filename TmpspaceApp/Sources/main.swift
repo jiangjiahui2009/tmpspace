@@ -1,4 +1,5 @@
 import AppKit
+import TmpspaceCore
 import TmpspaceSettings
 
 // Force Chinese localization for system dialogs (NSSavePanel, etc.).
@@ -19,6 +20,18 @@ func bootLog(_ msg: String) {
 
 bootLog("main.swift started")
 
+/// Lightweight action handler for main menu items that post notifications
+/// instead of being routed through the MenuBarController (which may not exist yet).
+@MainActor
+private final class MenuActions: NSObject {
+    @objc func openPreferences(_ sender: Any?) {
+        NotificationCenter.default.post(name: .tmpspaceOpenPreferences, object: nil)
+    }
+    @objc func createPanel(_ sender: Any?) {
+        NotificationCenter.default.post(name: .tmpspaceMenuCreatePanel, object: nil)
+    }
+}
+
 // Observe the didFinishLaunching notification directly.
 NotificationCenter.default.addObserver(
     forName: NSApplication.didFinishLaunchingNotification,
@@ -33,6 +46,8 @@ let app = NSApplication.shared
 // LSUIElement=YES in Info.plist hides the Dock icon.
 app.setActivationPolicy(.regular)
 
+fileprivate let menuActions = MenuActions()
+
 // Build a minimal main menu so that standard key equivalents
 // (Cmd+V paste, Cmd+C copy, Cmd+X cut, Cmd+A select all, etc.)
 // are routed through the responder chain to the WKWebView editor.
@@ -43,7 +58,8 @@ let appMenuItem = NSMenuItem(title: "Tmpspace", action: nil, keyEquivalent: "")
 let appMenu = NSMenu(title: "Tmpspace")
 appMenu.addItem(withTitle: "关于 Tmpspace", action: #selector(NSApp.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
 appMenu.addItem(.separator())
-appMenu.addItem(withTitle: "偏好设置...", action: nil, keyEquivalent: ",")
+let prefsItem = appMenu.addItem(withTitle: "偏好设置...", action: #selector(menuActions.openPreferences(_:)), keyEquivalent: ",")
+prefsItem.target = menuActions
 appMenu.addItem(.separator())
 appMenu.addItem(withTitle: "退出 Tmpspace", action: #selector(NSApp.terminate(_:)), keyEquivalent: "q")
 appMenuItem.submenu = appMenu
@@ -52,8 +68,8 @@ mainMenu.addItem(appMenuItem)
 // File menu
 let fileMenuItem = NSMenuItem(title: "File", action: nil, keyEquivalent: "")
 let fileMenu = NSMenu(title: "File")
-fileMenu.addItem(withTitle: "新建编辑框", action: nil, keyEquivalent: "n")
-fileMenu.addItem(withTitle: "保存...", action: nil, keyEquivalent: "s")
+let newItem = fileMenu.addItem(withTitle: "新建编辑框", action: #selector(menuActions.createPanel(_:)), keyEquivalent: "n")
+newItem.target = menuActions
 fileMenu.addItem(.separator())
 fileMenu.addItem(withTitle: "关闭", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
 fileMenuItem.submenu = fileMenu

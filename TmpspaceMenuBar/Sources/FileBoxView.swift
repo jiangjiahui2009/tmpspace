@@ -270,6 +270,16 @@ extension FileBoxView: NSCollectionViewDataSource {
                 NSWorkspace.shared.open(fileURL)
                 self?.collectionView.deselectItems(at: [indexPath])
             }
+            fileItem.onRightClick = { [weak self] fileURL in
+                guard let self, let window = self.window else { return }
+                // Convert to window-relative coordinates for the pop-up menu.
+                let itemOrigin = collectionView.convert(
+                    collectionView.frameForItem(at: indexPath.item).origin,
+                    to: nil
+                )
+                let point = NSPoint(x: itemOrigin.x + 36, y: itemOrigin.y + 40)
+                self.showContextMenu(for: fileURL, at: window.convertPoint(toScreen: point))
+            }
         }
         return item
     }
@@ -344,6 +354,7 @@ private final class FileItemView: NSView {
         didSet { needsDisplay = true }
     }
     var onDoubleClick: (() -> Void)?
+    var onRightClick: (() -> Void)?
 
     override func mouseDown(with event: NSEvent) {
         if event.clickCount == 2 {
@@ -351,6 +362,10 @@ private final class FileItemView: NSView {
         } else {
             super.mouseDown(with: event)
         }
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        onRightClick?()
     }
 
     override func draw(_ dirtyRect: NSRect) {
@@ -376,6 +391,7 @@ private final class FileItem: NSCollectionViewItem {
     private var nameLabel: NSTextField!
     private var fileURL: URL?
     var onDoubleClick: ((URL) -> Void)?
+    var onRightClick: ((URL) -> Void)?
 
     override func loadView() {
         view = FileItemView(frame: NSRect(x: 0, y: 0, width: 72, height: 80))
@@ -394,6 +410,10 @@ private final class FileItem: NSCollectionViewItem {
         itemView.onDoubleClick = { [weak self] in
             guard let self, let url = self.fileURL else { return }
             self.onDoubleClick?(url)
+        }
+        itemView.onRightClick = { [weak self] in
+            guard let self, let url = self.fileURL else { return }
+            self.onRightClick?(url)
         }
 
         iconView = NSImageView(frame: NSRect(x: 8, y: 20, width: 56, height: 44))
