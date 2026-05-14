@@ -35,13 +35,13 @@ public struct SettingsView: View {
     // MARK: - Editor display preferences
 
     @AppStorage("editorFontFamily") private var editorFontFamily = "system-ui"
-    @AppStorage("editorFontSize") private var editorFontSize = Double(14)
+    @AppStorage("editorFontSize") private var editorFontSize = Double(16)
     @AppStorage("editorTheme") private var editorTheme = "system"
-    @AppStorage("editorShowLineNumbers") private var editorShowLineNumbers = false
+    @AppStorage("editorShowLineNumbers") private var editorShowLineNumbers = true
     @AppStorage("editorShowActiveLineIndicator") private var editorShowActiveLineIndicator = false
     @AppStorage("editorLineHeight") private var editorLineHeight = Double(1.6)
     @AppStorage("editorTaskToggleSound") private var editorTaskToggleSound = true
-    @AppStorage("editorReduceToolbarTransparency") private var editorReduceToolbarTransparency = false
+    @AppStorage("editorReduceToolbarTransparency") private var editorReduceToolbarTransparency = true
 
     // MARK: - Quick Copy shortcut preferences (disabled)
     //

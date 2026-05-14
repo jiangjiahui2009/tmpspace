@@ -82,13 +82,13 @@ public struct EditorDisplaySettings: Codable, Equatable, Sendable {
         fontFamily: String = "system-ui",
         fontWeight: String? = nil,
         fontStyle: String? = nil,
-        fontSize: Double = 14,
+        fontSize: Double = 16,
         theme: String = "system",
-        showLineNumbers: Bool = false,
+        showLineNumbers: Bool = true,
         showActiveLineIndicator: Bool = false,
         lineHeight: Double = 1.6,
         taskToggleSound: Bool = true,
-        reduceToolbarTransparency: Bool = false
+        reduceToolbarTransparency: Bool = true
     ) {
         self.fontFamily = fontFamily
         self.fontWeight = fontWeight

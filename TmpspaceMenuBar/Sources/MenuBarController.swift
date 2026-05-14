@@ -138,8 +138,9 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         let toggleItem = NSMenuItem(
             title: "显示/隐藏",
             action: #selector(menuTogglePanels),
-            keyEquivalent: ""
+            keyEquivalent: currentShortcutKey
         )
+        toggleItem.keyEquivalentModifierMask = currentShortcutModifiers
         toggleItem.target = self
         statusMenu.addItem(toggleItem)
 
@@ -328,6 +329,17 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
             positionDropZone()
             dropZoneController.ensureVisible()
         }
+    }
+
+    /// The current shortcut key character from UserDefaults.
+    private var currentShortcutKey: String {
+        UserDefaults.standard.string(forKey: "globalShortcutKey") ?? " "
+    }
+
+    /// The current shortcut modifiers from UserDefaults.
+    private var currentShortcutModifiers: NSEvent.ModifierFlags {
+        let raw = UInt(UserDefaults.standard.integer(forKey: "globalShortcutModifiers"))
+        return NSEvent.ModifierFlags(rawValue: raw)
     }
 
     /// Build a human-readable shortcut string from stored UserDefaults values.
