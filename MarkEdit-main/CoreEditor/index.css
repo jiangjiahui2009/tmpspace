@@ -55,3 +55,50 @@ html, body {
   text-indent: 0px;
   margin-inline-start: 0px;
 }
+
+/* Task list checkbox — Apple Notes style */
+
+.cm-md-taskMarker {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: text-bottom;
+  position: relative;
+  font-size: 0;
+  cursor: pointer;
+}
+
+/* Circle outline / filled background */
+.cm-md-taskMarker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid #c0c0c0;
+  background: transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.cm-md-taskMarker-unchecked::before {
+  border-color: #c0c0c0;
+  background: transparent;
+}
+
+.cm-md-taskMarker-checked::before {
+  border-color: #e8b80a;
+  background: #f5c518;
+}
+
+/* Checkmark — drawn with CSS borders (no font dependency) */
+.cm-md-taskMarker-checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 4px;
+  height: 6.5px;
+  border: solid #fff;
+  border-width: 0 1.2px 1.2px 0;
+  transform: rotate(45deg);
+}

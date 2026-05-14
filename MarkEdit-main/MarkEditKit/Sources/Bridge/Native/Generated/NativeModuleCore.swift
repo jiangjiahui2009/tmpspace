@@ -25,6 +25,7 @@ public protocol NativeModuleCore: NativeModule {
   func notifyCompositionEnded(selectedLineColumn: LineColumnInfo)
   func notifyLinkClicked(link: String)
   func notifyLightWarning()
+  func notifyTaskToggled(checked: Bool)
 }
 
 public extension NativeModuleCore {
@@ -73,6 +74,9 @@ final class NativeBridgeCore: NativeBridge {
     },
     "notifyLightWarning": { [weak self] in
       await self?.notifyLightWarning(parameters: $0)
+    },
+    "notifyTaskToggled": { [weak self] in
+      await self?.notifyTaskToggled(parameters: $0)
     },
   ]
 
@@ -237,6 +241,23 @@ final class NativeBridgeCore: NativeBridge {
 
   private func notifyLightWarning(parameters: Data) async -> Result<Any?, Error>? {
     module.notifyLightWarning()
+    return .success(nil)
+  }
+
+  private func notifyTaskToggled(parameters: Data) async -> Result<Any?, Error>? {
+    struct Message: Decodable {
+      var checked: Bool
+    }
+
+    let message: Message
+    do {
+      message = try decoder.decode(Message.self, from: parameters)
+    } catch {
+      Logger.assertFail("Failed to decode parameters: \(parameters)")
+      return .failure(error)
+    }
+
+    module.notifyTaskToggled(checked: message.checked)
     return .success(nil)
   }
 }

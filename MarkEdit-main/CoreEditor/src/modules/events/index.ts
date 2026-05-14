@@ -22,8 +22,9 @@ export function startObserving() {
     if (isMetaKey(event)) {
       storage.isMetaKeyDown = true;
       link.startClickable();
-      task.startClickable();
     }
+    // Task markers are always clickable.
+    task.startClickable();
 
     storage.keyPressTime = Date.now();
   });
@@ -32,17 +33,16 @@ export function startObserving() {
     if (isMetaKey(event)) {
       storage.isMetaKeyDown = false;
       link.stopClickable();
-      task.stopClickable();
     }
+    // Keep task markers clickable at all times (no Cmd required).
   });
 
   document.addEventListener('mousedown', event => {
     storage.isMouseDown = true;
     link.handleMouseDown(event);
 
-    if (isMetaKeyDown()) {
-      task.handleMouseDown(event);
-    }
+    // Task checkbox toggles on direct click — no Cmd required.
+    task.handleMouseDown(event);
   }, true);
 
   document.addEventListener('mouseup', event => {
@@ -117,7 +117,7 @@ export function resetKeyStates() {
   storage.isMetaKeyDown = false;
 
   link.stopClickable();
-  task.stopClickable();
+  // Keep task markers clickable.
 }
 
 function observeEventsForTokenization() {

@@ -16,8 +16,8 @@ export const taskMarkerStyle = createDecoPlugin(() => {
     return Decoration.mark({
       attributes: {
         class: `${baseClass} ${stateClass}`,
-        title: window.config.localizable?.cmdClickToToggleTodo ?? '',
       },
+      inclusive: true,
     }).range(lineAt(from).from, to);
   });
 });
@@ -61,6 +61,10 @@ export function handleMouseDown(event: MouseEvent) {
     selection, // Preserve selections
     userEvent: '@none', // Ignore automatic scrolling
   });
+
+  // Notify native side so Swift can play a sound effect.
+  const isChecked = /^([ \t]*[-*+] +\[[xX]\])/.test(toggled);
+  window.nativeModules.core.notifyTaskToggled({ checked: isChecked });
 
   event.preventDefault();
   event.stopPropagation();
