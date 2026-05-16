@@ -17,7 +17,10 @@ final class EncryptionService: Sendable {
     init() throws {
         func blog(_ msg: String) {
             guard let data = (msg + "\n").data(using: .utf8) else { return }
-            let url = URL(fileURLWithPath: "/tmp/tmpspace-boot.log")
+            let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+                .appendingPathComponent("com.tmpspace.app", isDirectory: true)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent("tmpspace-boot.log")
             if let h = try? FileHandle(forWritingTo: url) {
                 _ = try? h.seekToEnd()
                 try? h.write(contentsOf: data)
@@ -57,7 +60,10 @@ final class EncryptionService: Sendable {
     private static func loadOrCreateKey() throws -> SymmetricKey {
         func blog(_ msg: String) {
             guard let data = (msg + "\n").data(using: .utf8) else { return }
-            let url = URL(fileURLWithPath: "/tmp/tmpspace-boot.log")
+            let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+                .appendingPathComponent("com.tmpspace.app", isDirectory: true)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent("tmpspace-boot.log")
             if let h = try? FileHandle(forWritingTo: url) {
                 _ = try? h.seekToEnd()
                 try? h.write(contentsOf: data)

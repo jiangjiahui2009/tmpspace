@@ -13,7 +13,10 @@ import TmpspaceCore
 
 private func tmpspaceHotKeyLog(_ msg: String) {
     guard let data = ("\(Date()) [HotKey] \(msg)\n").data(using: .utf8) else { return }
-    let url = URL(fileURLWithPath: "/tmp/tmpspace-debug.log")
+    let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        .appendingPathComponent("com.tmpspace.app", isDirectory: true)
+    try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let url = dir.appendingPathComponent("tmpspace-debug.log")
     if let h = try? FileHandle(forWritingTo: url) {
         _ = try? h.seekToEnd()
         try? h.write(contentsOf: data)

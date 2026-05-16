@@ -80,12 +80,16 @@ private final class ChunkLoader: NSObject, WKURLSchemeHandler {
 
         let mimeType = Self.mimeTypes[url.pathExtension] ?? "application/octet-stream"
 
-        let response = URLResponse(
+        let response = HTTPURLResponse(
             url: url,
-            mimeType: mimeType,
-            expectedContentLength: fileData.count,
-            textEncodingName: nil
-        )
+            statusCode: 200,
+            httpVersion: "HTTP/1.1",
+            headerFields: [
+                "Content-Type": mimeType,
+                "Content-Length": "\(fileData.count)",
+                "Access-Control-Allow-Origin": "*",
+            ]
+        )!
 
         urlSchemeTask.didReceive(response)
         urlSchemeTask.didReceive(fileData)
@@ -168,7 +172,10 @@ extension WebKitConfigSPI {
 /// DebugLog is in TmpspaceMenuBar, we log via a simple file write.
 func editorLog(_ msg: String) {
     guard let data = ("\(Date()) [Editor] \(msg)\n").data(using: .utf8) else { return }
-    let url = URL(fileURLWithPath: "/tmp/tmpspace-debug.log")
+    let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        .appendingPathComponent("com.tmpspace.app", isDirectory: true)
+    try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let url = dir.appendingPathComponent("tmpspace-debug.log")
     if let h = try? FileHandle(forWritingTo: url) {
         _ = try? h.seekToEnd()
         try? h.write(contentsOf: data)
@@ -297,6 +304,7 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
         bridge.setShowLineNumbers(settings.showLineNumbers)
         bridge.setShowActiveLineIndicator(settings.showActiveLineIndicator)
         bridge.setLineHeight(settings.lineHeight)
+        bridge.remeasureLayout()
     }
 
     public func destroyEditor(for panelId: UUID) {
@@ -319,10 +327,8 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
         let config = WKWebViewConfiguration()
         config.userContentController = controller
 
-        // Disable CORS so ES modules loaded via custom URL schemes are not blocked.
-        // WKWebView enforces CORS for <script type="module"> by default, and our
-        // custom chunk-loader scheme handler returns plain URLResponse (no CORS headers).
-        config.preferences.setBoolValue(false, forSelector: "_setWebSecurityEnabled:")
+        // ChunkLoader now returns HTTPURLResponse with Access-Control-Allow-Origin:*
+        // so ES module cross-file loading works without disabling web security.
 
         // 3. Register the chunk-loader URL scheme handler for loading JS/CSS/font assets.
         let chunkLoader = ChunkLoader(distPath: distPath)
@@ -356,10 +362,9 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             // stylesheet has loaded. WKUserScript runs too early.
             bridge?.injectStyleFixes()
             bridge?.injectPasteHandler()
+            // Diagnostic: log gutter vs line measurements to find root cause
+            bridge?.diagnoseGutter()
             // Re-apply display settings now that the JS bridge is fully initialized.
-            // The initial call from PanelManager may have fired before the WebView finished
-            // loading, causing the lineHeight CSS to be measured with stale font metrics.
-            // Re-applying forces CodeMirror to re-measure and keeps the gutter aligned.
             let s = EditorDisplaySettings.load()
             bridge?.setFontFace(family: s.fontFamily, weight: s.fontWeight, style: s.fontStyle)
             bridge?.setFontSize(s.fontSize)
@@ -367,13 +372,20 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             bridge?.setShowLineNumbers(s.showLineNumbers)
             bridge?.setShowActiveLineIndicator(s.showActiveLineIndicator)
             bridge?.setLineHeight(s.lineHeight)
-            // Wait for the system font to fully resolve, then re-measure so the
-            // gutter positions are calculated with the correct final font metrics.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                bridge?.remeasureLayout()
-            }
+            bridge?.remeasureLayout()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 bridge?.focus()
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                bridge?.remeasureLayout()
+                bridge?.diagnoseGutter()
+            }
+            // The phantom gutter element (height=0, text e.g. "9") exists
+            // immediately after editor creation. Remove it before any
+            // measurement can give it real height.
+            bridge?.cleanPhantomGutters()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                bridge?.diagnoseGutter()
             }
         }
 
@@ -407,7 +419,7 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             guard settings.taskToggleSound else { return }
             // Try the bundled notify.wav first, then system "Pop", then haptics.
             var played = false
-            if let url = Bundle.module.url(forResource: "notify", withExtension: "wav"),
+            if let url = Bundle.main.url(forResource: "notify", withExtension: "wav"),
                let sound = NSSound(contentsOf: url, byReference: true) {
                 sound.play()
                 played = true
@@ -462,7 +474,7 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             typewriterMode: false,
             focusMode: false,
             lineWrapping: true,
-            lineHeight: display.lineHeight,
+            lineHeight: 1.6,
             suggestWhileTyping: false,
             standardDirectories: [:],
             defaultLineBreak: nil,

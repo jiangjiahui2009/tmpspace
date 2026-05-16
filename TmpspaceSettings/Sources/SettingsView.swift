@@ -7,6 +7,7 @@
 
 import SwiftUI
 import TmpspaceCore
+import TmpspaceMenuBar
 import ServiceManagement
 
 /// The preferences window content view, providing Editor and General tabs.
@@ -42,6 +43,7 @@ public struct SettingsView: View {
     @AppStorage("editorLineHeight") private var editorLineHeight = Double(1.6)
     @AppStorage("editorTaskToggleSound") private var editorTaskToggleSound = true
     @AppStorage("editorReduceToolbarTransparency") private var editorReduceToolbarTransparency = true
+    @AppStorage("customMenuBarIcon") private var customMenuBarIcon = "tmp"
 
     // MARK: - Quick Copy shortcut preferences (disabled)
     //
@@ -62,6 +64,11 @@ public struct SettingsView: View {
             generalTab
                 .tabItem {
                     Label("通用", systemImage: "gearshape")
+                }
+
+            personalizationTab
+                .tabItem {
+                    Label("个性化", systemImage: "paintpalette")
                 }
         }
         .frame(minWidth: 460, minHeight: 320)
@@ -198,18 +205,88 @@ public struct SettingsView: View {
         .formStyle(.grouped)
     }
 
+    // MARK: - Personalization Tab
+
+    /// Grid layout for icon picker.
+    private let iconGridColumns: [GridItem] = [
+        .init(.adaptive(minimum: 64, maximum: 72), spacing: 12)
+    ]
+
+    @ViewBuilder
+    private var personalizationTab: some View {
+        Form {
+            Section {
+                LazyVGrid(columns: iconGridColumns, spacing: 12) {
+                    ForEach(MenuBarController.availableIcons, id: \.id) { icon in
+                        iconCell(for: icon)
+                    }
+                }
+                .padding(.vertical, 8)
+            } header: {
+                Text("开箱图标")
+            } footer: {
+                Text("选择编辑器显示时菜单栏的图标。隐藏状态下始终使用默认图标。")
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    @ViewBuilder
+    private func iconCell(for icon: (id: String, label: String)) -> some View {
+        let isSelected = customMenuBarIcon == icon.id
+
+        VStack(spacing: 4) {
+            Group {
+                if icon.id == "random" {
+                    Image(systemName: "dice")
+                        .font(.system(size: 28))
+                        .foregroundStyle(isSelected ? .blue : .secondary)
+                } else if let image = MenuBarController.loadPreviewImage("icon/\(icon.id)") {
+                    Image(nsImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 36, height: 36)
+                } else {
+                    Image(systemName: "questionmark.square")
+                        .font(.system(size: 28))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 48, height: 48)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected
+                        ? Color.accentColor.opacity(0.15)
+                        : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(
+                        isSelected ? Color.accentColor : Color.secondary.opacity(0.3),
+                        lineWidth: isSelected ? 2 : 1
+                    )
+            )
+
+            Text(icon.label)
+                .font(.caption2)
+                .foregroundStyle(isSelected ? .primary : .secondary)
+                .lineLimit(1)
+        }
+        .frame(width: 72)
+        .onTapGesture {
+            customMenuBarIcon = icon.id
+            NotificationCenter.default.post(
+                name: .tmpspaceMenuBarIconDidChange,
+                object: nil
+            )
+        }
+    }
+
     // MARK: - File Box helpers
 
-    /// The current file box folder URL, expanding tilde if needed.
+    /// The current file box folder URL, resolved via FileBoxManager (handles sandbox).
     private var fileBoxFolderURL: URL {
-        let raw = fileBoxFolderPath
-        let path = raw.isEmpty
-            ? FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent("Documents")
-                .appendingPathComponent("Tmpspace")
-                .path
-            : (raw as NSString).expandingTildeInPath
-        return URL(fileURLWithPath: path)
+        FileBoxManager.resolveFolderURL()
     }
 
     /// Display-friendly abbreviated path.
@@ -226,6 +303,7 @@ public struct SettingsView: View {
         panel.message = "选择文件盒子的存储文件夹"
         panel.prompt = "选择"
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        FileBoxManager.saveBookmark(for: url)
         fileBoxFolderPath = url.path
     }
 

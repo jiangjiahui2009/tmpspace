@@ -10,38 +10,83 @@ import Foundation
 
 /// Manages the lifecycle of files dropped into a panel's file box.
 ///
-/// Files are copied into a user-configurable folder (default: ~/Documents/Tmpspace/).
-/// The folder can be changed in Preferences > General.
+/// Files are copied into a user-configurable folder.
+/// In sandbox the default is the app container's Documents/Tmpspace/;
+/// outside sandbox the default is ~/Documents/Tmpspace/.
 @MainActor
-final class FileBoxManager {
+public final class FileBoxManager {
 
     /// UserDefaults key for the shared file box folder path.
     private static let folderPathKey = "fileBoxFolderPath"
 
-    /// Default folder: ~/Documents/Tmpspace/
+    /// UserDefaults key for the security-scoped bookmark (sandbox persisted access).
+    private static let bookmarkKey = "fileBoxFolderBookmark"
+
+    /// Retains the security-scoped URL so the kernel doesn't revoke access.
+    private static var securedFolderURL: URL?
+
+    // MARK: - Sandbox detection
+
+    /// `true` when the app is running inside the macOS App Sandbox.
+    private static var isSandboxed: Bool {
+        let containerBase = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Containers/com.tmpspace.app")
+        return FileManager.default.fileExists(atPath: containerBase.path)
+    }
+
+    /// Default folder when no user-chosen folder is configured.
     private static var defaultFolderURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        if isSandboxed {
+            // App sandbox container Documents — always writable without bookmarks.
+            return home
+                .appendingPathComponent("Library/Containers/com.tmpspace.app/Data/Documents/Tmpspace",
+                                        isDirectory: true)
+        }
+        return home
             .appendingPathComponent("Documents", isDirectory: true)
             .appendingPathComponent("Tmpspace", isDirectory: true)
     }
 
-    /// The shared folder all files are stored in.
-    static var folderURL: URL {
-        get {
-            let raw = UserDefaults.standard.string(forKey: folderPathKey) ?? ""
-            let url = raw.isEmpty
-                ? defaultFolderURL
-                : URL(fileURLWithPath: (raw as NSString).expandingTildeInPath)
-            // Ensure the directory exists.
-            if !FileManager.default.fileExists(atPath: url.path) {
-                try? FileManager.default.createDirectory(
-                    at: url,
-                    withIntermediateDirectories: true,
-                    attributes: nil
-                )
+    /// Resolve the working folder: security-scoped bookmark first, then
+    /// the plain path from UserDefaults, then the default location.
+    public static func resolveFolderURL() -> URL {
+        // 1. Try restoring a security-scoped bookmark (sandbox-safe).
+        if let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) {
+            var isStale = false
+            if let resolved = try? URL(
+                resolvingBookmarkData: bookmarkData,
+                options: .withSecurityScope,
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            ) {
+                if resolved.startAccessingSecurityScopedResource() {
+                    securedFolderURL = resolved  // retain access for app lifetime
+                    if isStale {
+                        // Re-save a fresh bookmark.
+                        saveBookmark(for: resolved)
+                    }
+                    return resolved
+                }
             }
-            return url
         }
+
+        // 2. Try the plain path (legacy, non-sandbox).
+        let raw = UserDefaults.standard.string(forKey: folderPathKey) ?? ""
+        if !raw.isEmpty {
+            let url = URL(fileURLWithPath: (raw as NSString).expandingTildeInPath)
+            if FileManager.default.fileExists(atPath: url.path) {
+                return url
+            }
+        }
+
+        // 3. Fall back to the default.
+        return defaultFolderURL
+    }
+
+    /// The shared folder all files are stored in.
+    public static var folderURL: URL {
+        get { resolveFolderURL() }
         set {
             let path = newValue.path
             UserDefaults.standard.set(path, forKey: folderPathKey)
@@ -53,6 +98,25 @@ final class FileBoxManager {
                     attributes: nil
                 )
             }
+        }
+    }
+
+    /// Create and persist a security-scoped bookmark for the given URL.
+    public static func saveBookmark(for url: URL) {
+        guard let data = try? url.bookmarkData(
+            options: .withSecurityScope,
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        ) else { return }
+        UserDefaults.standard.set(data, forKey: bookmarkKey)
+        folderURL = url
+    }
+
+    /// Release security-scoped access. Call on app termination.
+    public static func stopSecurityScopedAccess() {
+        if let url = securedFolderURL {
+            url.stopAccessingSecurityScopedResource()
+            securedFolderURL = nil
         }
     }
 

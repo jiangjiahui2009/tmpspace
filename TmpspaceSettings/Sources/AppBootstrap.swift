@@ -27,7 +27,10 @@ final class AppBootstrap: NSObject {
         // Helper to write boot log
         func blog(_ msg: String) {
             guard let data = (msg + "\n").data(using: .utf8) else { return }
-            let url = URL(fileURLWithPath: "/tmp/tmpspace-boot.log")
+            let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+                .appendingPathComponent("com.tmpspace.app", isDirectory: true)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent("tmpspace-boot.log")
             if let h = try? FileHandle(forWritingTo: url) {
                 _ = try? h.seekToEnd()
                 try? h.write(contentsOf: data)
@@ -50,6 +53,10 @@ final class AppBootstrap: NSObject {
         blog("MenuBarController created OK")
 
         super.init()
+
+        // Restore security-scoped bookmark access for sandboxed file box folder.
+        _ = FileBoxManager.resolveFolderURL()
+        blog("FileBoxManager folder resolved")
 
         // Inject dependencies into PanelManager
         menuBarController.panelManager.editorProvider = editorProvider
@@ -178,6 +185,7 @@ final class AppBootstrap: NSObject {
             let models = menuBarController.panelManager.panels
             try? await storage.saveAllPanels(models)
         }
+        FileBoxManager.stopSecurityScopedAccess()
     }
 
     // MARK: - Quick Copy (disabled)

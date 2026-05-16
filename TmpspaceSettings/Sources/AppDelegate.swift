@@ -38,7 +38,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
         // Direct boot log (bypasses DebugLog which might have path issues).
         if let data = "applicationDidFinishLaunching called\n".data(using: .utf8) {
-            if let h = try? FileHandle(forWritingTo: URL(fileURLWithPath: "/tmp/tmpspace-boot.log")) {
+            if let h = try? FileHandle(forWritingTo: Self.bootLogURL()) {
                 _ = try? h.seekToEnd()
                 try? h.write(contentsOf: data)
                 try? h.close()
@@ -104,16 +104,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = ThemeManager.shared
 
         // ── Bootstrap all modules ──────────────────────────────────
-        let distPath = Bundle.main.path(forResource: "dist", ofType: nil)
-            // Fallback during development:
-            ?? NSString(string: "\(NSHomeDirectory())/Desktop/tmpspace/MarkEdit-main/CoreEditor/dist").expandingTildeInPath
-
-        if let data = "distPath=\(distPath)\n".data(using: .utf8) {
-            if let h = try? FileHandle(forWritingTo: URL(fileURLWithPath: "/tmp/tmpspace-boot.log")) {
-                _ = try? h.seekToEnd()
-                try? h.write(contentsOf: data)
-                try? h.close()
-            }
+        guard let distPath = Bundle.main.path(forResource: "dist", ofType: nil) else {
+            fatalError("CoreEditor dist/ not found in app bundle. Expected at Resources/dist/")
         }
 
         do {
@@ -121,13 +113,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             let msg = "AppBootstrap FAILED: \(error)\n"
             if let data = msg.data(using: .utf8) {
-                _ = try? data.write(to: URL(fileURLWithPath: "/tmp/tmpspace-boot.log"), options: .atomic)
+                _ = try? data.write(to: Self.bootLogURL(), options: .atomic)
             }
             fatalError("Failed to bootstrap Tmpspace: \(error)")
         }
 
         if let data = "AppBootstrap done, MenuBarController created\n".data(using: .utf8) {
-            if let h = try? FileHandle(forWritingTo: URL(fileURLWithPath: "/tmp/tmpspace-boot.log")) {
+            if let h = try? FileHandle(forWritingTo: Self.bootLogURL()) {
                 _ = try? h.seekToEnd()
                 try? h.write(contentsOf: data)
                 try? h.close()
@@ -165,6 +157,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - Private Helpers
+
+    /// Returns the URL for the boot log file within the sandbox-safe temp directory.
+    private static func bootLogURL() -> URL {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("com.tmpspace.app", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("tmpspace-boot.log")
+    }
 
     /// Register default values for all UserDefaults keys consumed by the app.
     ///

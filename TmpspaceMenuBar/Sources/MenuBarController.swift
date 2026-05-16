@@ -74,6 +74,14 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         )
         // Set initial icon state based on current panel visibility.
         updateStatusBarIcon(visible: panelManager.panels.contains { $0.isVisible })
+
+        // Observe custom icon changes from Settings.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleMenuBarIconDidChange),
+            name: .tmpspaceMenuBarIconDidChange,
+            object: nil
+        )
     }
 
     // MARK: - Status bar item
@@ -82,10 +90,15 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         guard let button = statusItem.button else {
-            fatalError("NSStatusBar button is nil — cannot set up menu bar icon.")
+            return
         }
 
-        button.image = loadTemplateImage("icon/tmp")
+        let icon = Self.loadTemplateImage("icon/tmp")
+        if let icon = icon {
+            button.image = icon
+        } else {
+            button.title = "📝"
+        }
         button.wantsLayer = true
 
         // Left-click toggles panels; right-click shows the menu.
@@ -371,9 +384,15 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         dropZoneController.ensureVisible()
     }
 
+    /// Called when the user picks a different menu bar icon in Settings.
+    @objc private func handleMenuBarIconDidChange() {
+        let visible = panelManager.panels.contains { $0.isVisible }
+        updateStatusBarIcon(visible: visible)
+    }
+
     /// Update the status bar icon image based on panel visibility.
-    /// - When panels are visible: show_state icon (active).
-    /// - When hidden: hide_state icon (inactive).
+    /// - When panels are visible: custom icon (or show_state) selected by the user.
+    /// - When hidden: always the default tmp icon.
     /// Uses a CATransition cross-fade for the icon change.
     private func updateStatusBarIcon(visible: Bool) {
         guard let button = statusItem.button else { return }
@@ -383,8 +402,22 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         transition.duration = 0.25
         button.layer?.add(transition, forKey: "iconTransition")
 
-        let imageName = "icon/tmp"
-        button.image = loadTemplateImage(imageName)
+        let iconName: String
+        let useTemplate: Bool
+        if visible {
+            var custom = UserDefaults.standard.string(forKey: "customMenuBarIcon") ?? "tmp"
+            if custom == "random" {
+                custom = Self.resolveRandomIcon()
+            }
+            iconName = "icon/\(custom)"
+            useTemplate = (custom == "tmp")
+        } else {
+            iconName = "icon/tmp"
+            useTemplate = true
+        }
+        button.image = useTemplate
+            ? Self.loadTemplateImage(iconName)
+            : (Self.loadColoredImage(iconName) ?? Self.loadTemplateImage("icon/tmp"))
 
         // Reposition the drop zone when the icon changes (the button frame may shift).
         positionDropZone()
@@ -392,22 +425,96 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
     /// Load a template image from the TmpspaceMenuBar resource bundle.
     /// Tries PNG first (sharper at small sizes), then falls back to SVG.
-    private func loadTemplateImage(_ name: String) -> NSImage? {
+    public static func loadTemplateImage(_ name: String) -> NSImage? {
         let directory = (name as NSString).deletingLastPathComponent
         let baseName = (name as NSString).lastPathComponent
 
         for ext in ["png", "svg"] {
-            guard let path = Bundle.module.path(forResource: baseName, ofType: ext, inDirectory: directory),
-                  let image = NSImage(contentsOfFile: path) else { continue }
-            // Compute point size from pixel dimensions (menu bar icons are 18 pt tall).
-            let pixelWidth = image.representations.first?.pixelsWide ?? 36
-            let pixelHeight = image.representations.first?.pixelsHigh ?? 36
-            let scale = NSScreen.main?.backingScaleFactor ?? 2.0
-            image.size = NSSize(width: CGFloat(pixelWidth) / scale, height: CGFloat(pixelHeight) / scale)
-            image.isTemplate = true
-            return image
+            guard let path = Bundle.main.path(forResource: baseName, ofType: ext, inDirectory: directory) else {
+                continue
+            }
+
+            if ext == "svg" {
+                // SVG images are vector-based; pixelsWide/pixelsHigh return 0.
+                // Load from data and force a point size suitable for menu bar (18pt).
+                guard let svgData = try? Data(contentsOf: URL(fileURLWithPath: path)),
+                      let image = NSImage(data: svgData) else { continue }
+                image.size = NSSize(width: 18, height: 18)
+                image.isTemplate = true
+                return image
+            } else {
+                guard let image = NSImage(contentsOfFile: path) else { continue }
+                let pixelWidth = image.representations.first?.pixelsWide ?? 36
+                let pixelHeight = image.representations.first?.pixelsHigh ?? 36
+                let scale = NSScreen.main?.backingScaleFactor ?? 2.0
+                image.size = NSSize(width: CGFloat(pixelWidth) / scale, height: CGFloat(pixelHeight) / scale)
+                image.isTemplate = true
+                return image
+            }
         }
 
         return nil
+    }
+
+    /// Load a colored (non-template) image for the menu bar.
+    /// Preserves original SVG colors instead of rendering as a monochrome mask.
+    public static func loadColoredImage(_ name: String) -> NSImage? {
+        guard let image = loadTemplateImage(name) else { return nil }
+        // Set isTemplate = false so macOS renders the original SVG colors.
+        image.isTemplate = false
+        return image
+    }
+
+    /// Available custom icons for the menu bar (shown state).
+    /// Each string is the base name (without extension), usable with `loadTemplateImage("icon/\\(name)")`.
+    /// Icon IDs eligible for random selection (excludes tmp and random placeholder).
+    private static let randomIconPool: [String] = [
+        "Botany", "cat music", "chameleon", "coffeepot", "cup", "dog",
+        "dolphin", "juice", "lion", "milk tea", "music", "orange cat",
+        "outdoor", "owl", "penguin", "snake", "T-Rex", "wander", "water",
+        "yawn-1", "yawn", "yellow cat",
+    ]
+
+    /// Resolve a "random" selection to a concrete icon ID.
+    private static func resolveRandomIcon() -> String {
+        randomIconPool.randomElement() ?? "tmp"
+    }
+
+    public static let availableIcons: [(id: String, label: String)] = [
+        ("tmp",            "默认"),
+        ("random",         "随机"),
+        ("Botany",         "植物"),
+        ("cat music",      "听歌猫"),
+        ("chameleon",      "变色龙"),
+        ("coffeepot",      "咖啡壶"),
+        ("cup",            "杯子"),
+        ("dog",            "狗"),
+        ("dolphin",        "海豚"),
+        ("juice",          "果汁"),
+        ("lion",           "狮子"),
+        ("milk tea",       "奶茶"),
+        ("music",          "音乐"),
+        ("orange cat",     "橘猫"),
+        ("outdoor",        "户外"),
+        ("owl",            "猫头鹰"),
+        ("penguin",        "企鹅"),
+        ("snake",          "蛇"),
+        ("T-Rex",          "霸王龙"),
+        ("wander",         "漫游"),
+        ("water",          "水"),
+        ("yawn-1",         "打哈欠 1"),
+        ("yawn",           "打哈欠"),
+        ("yellow cat",     "黄猫"),
+    ]
+
+    /// Load an icon image for preview (non-template, shows original colors).
+    /// Falls back to template loading if the icon file doesn't exist.
+    public static func loadPreviewImage(_ name: String) -> NSImage? {
+        // Return the template image at a slightly larger size for preview.
+        guard let image = loadTemplateImage(name) else { return nil }
+        let copy = image.copy() as! NSImage
+        copy.isTemplate = false
+        copy.size = NSSize(width: 40, height: 40)
+        return copy
     }
 }

@@ -129,6 +129,10 @@ extension Notification.Name {
     /// Posted when files are dropped into the menu bar drop zone (panels hidden).
     /// FloatingPanelController observes this to refresh its file box when shown.
     public static let tmpspaceDropZoneDidReceiveFiles = Notification.Name("TmpspaceDropZoneDidReceiveFiles")
+
+    /// Posted when the user selects a custom menu bar icon in Settings.
+    /// MenuBarController observes this to update the status bar icon immediately.
+    public static let tmpspaceMenuBarIconDidChange = Notification.Name("TmpspaceMenuBarIconDidChange")
 }
 
 // MARK: - UserDefaults persistence

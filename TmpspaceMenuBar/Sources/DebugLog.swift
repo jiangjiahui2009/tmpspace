@@ -2,7 +2,12 @@ import Foundation
 
 /// Simple file-based logger for debugging app launch issues.
 public enum DebugLog {
-    private static let logFileURL: URL = URL(fileURLWithPath: "/tmp/tmpspace-debug.log")
+    private static let logFileURL: URL = {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("com.tmpspace.app", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("tmpspace-debug.log")
+    }()
 
     public static func log(_ message: String) {
         let line = "\(Date()) [Tmpspace] \(message)\n"

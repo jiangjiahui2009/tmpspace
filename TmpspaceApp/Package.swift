@@ -30,15 +30,7 @@ let package = Package(
                 "TmpspaceStorage",
                 "TmpspaceSettings",
             ],
-            path: "Sources",
-            linkerSettings: [
-                .unsafeFlags([
-                    "-Xlinker", "-sectcreate",
-                    "-Xlinker", "__TEXT",
-                    "-Xlinker", "__info_plist",
-                    "-Xlinker", "Info.plist",
-                ]),
-            ]
+            path: "Sources"
         ),
     ]
 )

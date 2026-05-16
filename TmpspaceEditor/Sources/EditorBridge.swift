@@ -7,6 +7,7 @@
 //  model and MarkEdit's web module function calls.
 //
 
+import AppKit
 import WebKit
 import TmpspaceCore
 
@@ -128,6 +129,30 @@ final class EditorBridge: NSObject, WKScriptMessageHandler {
             return
         }
 
+        // Diagnostic: gutter measurements
+        if moduleName == "core", methodName == "notifyDiagnostic" {
+            editorLog("notifyDiagnostic received, body=\(body)")
+            if let paramsString = body["parameters"] as? String {
+                editorLog("notifyDiagnostic params=\(paramsString.prefix(200))")
+                if let paramsData = paramsString.data(using: .utf8),
+                   let obj = try? JSONDecoder().decode([String: String].self, from: paramsData),
+                   let lines = obj["lines"] {
+                    editorLog("GutterDiag:\n\(lines)")
+                } else {
+                    editorLog("notifyDiagnostic: failed to decode params")
+                }
+            } else {
+                editorLog("notifyDiagnostic: parameters not a String")
+            }
+            return
+        }
+
+        // User pasted into the editor; read the native clipboard and insert.
+        if moduleName == "core", methodName == "notifyPasteRequested" {
+            handlePasteRequest()
+            return
+        }
+
         // Files were dropped onto the editor.
         if moduleName == "core", methodName == "notifyFilesDropped" {
             editorLog("EditorBridge — received notifyFilesDropped")
@@ -224,17 +249,129 @@ final class EditorBridge: NSObject, WKScriptMessageHandler {
         (function(){
         var s=document.getElementById('ts-fixes');
         if(!s){s=document.createElement('style');s.id='ts-fixes';document.head.appendChild(s);}
-        s.textContent='.cm-specialChar{display:none!important}';
+        s.textContent='.cm-specialChar { opacity: 0 !important; }';
         })()
         """
         webView?.evaluateJavaScript(script)
     }
 
-    /// WKWebView on macOS does not fire a proper `paste` event with `clipboardData`
-    /// for `contenteditable` elements — the platform inserts rich HTML instead of
-    /// plain text, collapsing `\\n` into spaces. This handler intercepts paste on
-    /// the editor's content DOM, reads the plain-text clipboard, and inserts it
-    /// through CodeMirror's transaction API so line breaks are preserved.
+    /// Diagnostic: log computed heights and positions of gutter elements vs
+    /// content lines, so we can see exactly what's misaligned.
+    func diagnoseGutter() {
+        let script = """
+        (function(){
+        var gutters=document.querySelectorAll('.cm-lineNumbers .cm-gutterElement');
+        var report=['--- Gutter Diag --- lines='+document.querySelectorAll('.cm-content .cm-line').length+' gutters='+gutters.length];
+        for(var i=0;i<gutters.length;i++){
+            var g=gutters[i];
+            var r=g.getBoundingClientRect();
+            report.push('g['+i+']: cls='+g.className+' txt='+(g.textContent||'')+
+                ' top='+r.top.toFixed(1)+' h='+r.height.toFixed(1)+
+                ' styH='+(g.style.height||'none')+' styPT='+(g.style.paddingTop||'none')+
+                ' parent='+(g.parentElement?g.parentElement.className:'none'));
+        }
+        window.webkit.messageHandlers.bridge.postMessage(({
+            moduleName:'core',
+            methodName:'notifyDiagnostic',
+            parameters:JSON.stringify({lines:report.join('\\n')})
+        }));
+        })()
+        """
+        webView?.evaluateJavaScript(script)
+    }
+
+    /// Remove phantom gutter elements that have no corresponding content line.
+    /// These can appear inside .cm-lineNumbers with non-sequential text content
+    /// (e.g. "9" when only 1 line exists), causing cumulative drift at that line.
+    func cleanPhantomGutters() {
+        let script = """
+        (function(){
+        var lineCount=document.querySelectorAll('.cm-content .cm-line').length;
+        var gutters=document.querySelectorAll('.cm-lineNumbers .cm-gutterElement');
+        // Only keep gutter elements whose text parse as a valid line number
+        // in range [1, lineCount]
+        var removed=0;
+        for(var i=gutters.length-1;i>=0;i--){
+            var n=parseInt(gutters[i].textContent,10);
+            if(isNaN(n)||n<1||n>lineCount){
+                gutters[i].remove();
+                removed++;
+            }
+        }
+        window.webkit.messageHandlers.bridge.postMessage(({
+            moduleName:'core',
+            methodName:'notifyDiagnostic',
+            parameters:JSON.stringify({lines:'cleanPhantomGutters: removed '+removed+
+                ' phantom elements, '+lineCount+' lines, '+
+                document.querySelectorAll('.cm-lineNumbers .cm-gutterElement').length+' gutters remain'})
+        }));
+        })()
+        """
+        webView?.evaluateJavaScript(script)
+    }
+
+    /// Clear any stale inline styles on gutter elements, then force CodeMirror
+    /// to re-measure. Called after DOM mutations to prevent the gutter from
+    /// drifting when cached measurements survive document changes (e.g. after
+    /// deleting lines and typing new ones).
+    func injectGutterFix() {
+        let lineHeight = EditorDisplaySettings.load().lineHeight
+        let script = """
+        (function(lh){
+        var cssId='__ts_gutter_fix_css';
+        if(!document.getElementById(cssId)){
+            var s=document.createElement('style');
+            s.id=cssId;
+            s.textContent='.cm-line, .cm-gutterElement { line-height: '+lh+' !important; }';
+            document.head.appendChild(s);
+        }
+
+        if(window.__tsGutterFixInstalled)return;
+        window.__tsGutterFixInstalled=true;
+        var content=document.querySelector('.cm-content');
+        if(!content)return;
+        var tm=null;
+        var observer=new MutationObserver(function(){
+            if(tm)clearTimeout(tm);
+            tm=setTimeout(function(){
+                var ed=window.editor;
+                if(!ed)return;
+                // Clear any inline height/padding that may have been set
+                // by adjustActiveLineGutter / adjustGutter on stale elements.
+                var gutters=document.querySelectorAll('.cm-lineNumbers .cm-gutterElement');
+                for(var i=0;i<gutters.length;i++){
+                    gutters[i].style.height='';
+                    gutters[i].style.paddingTop='';
+                }
+                ed.requestMeasure();
+            }, 20);
+        });
+        observer.observe(content,{childList:true,subtree:true,characterData:true});
+        })(\(lineHeight))
+        """
+        webView?.evaluateJavaScript(script)
+    }
+
+    /// Force a complete gutter rebuild by toggling line numbers off and back on
+    /// in the same synchronous tick. This destroys and recreates all gutter DOM
+    /// elements, forcing fresh measurements — the same effect as the user toggling
+    /// line numbers in Settings, which the user confirmed fixes the drift.
+    /// No visual flicker because both dispatches are batched before the next paint.
+    func forceGutterResync() {
+        let script = """
+        (function(){
+        if(typeof webModules!=='object')return;
+        if(!window.editor)return;
+        webModules.config.setShowLineNumbers({enabled:false});
+        webModules.config.setShowLineNumbers({enabled:true});
+        })()
+        """
+        webView?.evaluateJavaScript(script)
+    }
+
+    /// Intercepts paste events inside the editor's content DOM and inserts plain
+    /// text via the Async Clipboard API or a native bridge fallback, bypassing
+    /// WKWebView's rich-text paste pipeline which collapses newlines into spaces.
     func injectPasteHandler() {
         let script = """
         (function(){
@@ -245,34 +382,85 @@ final class EditorBridge: NSObject, WKScriptMessageHandler {
             if(!cm||!cm.contains(e.target))return;
             var view=window.editor;
             if(!view)return;
-            // Only intervene when pasting into the editor area.
-            var plain=e.clipboardData&&e.clipboardData.getData('text/plain');
-            if(!plain)return;
+
+            // Always prevent WKWebView's default paste — it collapses newlines.
             e.preventDefault();
             e.stopPropagation();
-            var from=view.state.selection.main.from;
-            view.dispatch(view.state.replaceSelection(plain));
-            view.focus();
+
+            // Attempt 1: Async Clipboard API (returns raw system clipboard text).
+            // paste is a user gesture, so readText() should work without a prompt.
+            if(navigator.clipboard&&navigator.clipboard.readText){
+                navigator.clipboard.readText().then(function(text){
+                    if(text&&view.state){
+                        view.dispatch(view.state.replaceSelection(text));
+                        view.focus();
+                    }
+                }).catch(function(){
+                    // Async Clipboard API failed — fall through to native bridge.
+                    window.webkit.messageHandlers.bridge.postMessage(({
+                        moduleName:'core',
+                        methodName:'notifyPasteRequested',
+                        parameters:'{}'
+                    }));
+                });
+                return;
+            }
+
+            // Fallback: ask native side (NSPasteboard) for the clipboard text.
+            window.webkit.messageHandlers.bridge.postMessage(({
+                moduleName:'core',
+                methodName:'notifyPasteRequested',
+                parameters:'{}'
+            }));
         },true);
         })()
         """
         webView?.evaluateJavaScript(script)
     }
 
-    /// Set the editor font face, weight, and style.
+    /// Reads the plain-text system clipboard and inserts it into the
+    /// CodeMirror editor, bypassing WKWebView's rich-text paste pipeline.
+    private func handlePasteRequest() {
+        guard let text = NSPasteboard.general.string(forType: .string),
+              !text.isEmpty else {
+            return
+        }
+        let jsonText = encodeJSON(text)
+        let script = """
+        (function(){
+            var view=window.editor;
+            if(!view)return;
+            view.dispatch(view.state.replaceSelection(\(jsonText)));
+            view.focus();
+        })()
+        """
+        webView?.evaluateJavaScript(script)
+    }
+
+    /// Set the editor font face, weight, and style, then re-measure layout.
     func setFontFace(family: String, weight: String?, style: String?) {
         var fontFaceJSON = "{\"family\":\(encodeJSON(family))"
         if let weight { fontFaceJSON += ",\"weight\":\(encodeJSON(weight))" }
         if let style { fontFaceJSON += ",\"style\":\(encodeJSON(style))" }
         fontFaceJSON += "}"
 
-        let script = "typeof webModules === 'object' ? webModules.config.setFontFace({fontFace:\(fontFaceJSON)}) : undefined"
+        let script = """
+        (function(){
+        if(typeof webModules==='object')webModules.config.setFontFace({fontFace:\(fontFaceJSON)});
+        if(window.editor)window.editor.requestMeasure();
+        })()
+        """
         webView?.evaluateJavaScript(script)
     }
 
-    /// Set the editor font size in points.
+    /// Set the editor font size in points, then re-measure layout.
     func setFontSize(_ size: Double) {
-        let script = "typeof webModules === 'object' ? webModules.config.setFontSize({fontSize:\(size)}) : undefined"
+        let script = """
+        (function(){
+        if(typeof webModules==='object')webModules.config.setFontSize({fontSize:\(size)});
+        if(window.editor)window.editor.requestMeasure();
+        })()
+        """
         webView?.evaluateJavaScript(script)
     }
 
