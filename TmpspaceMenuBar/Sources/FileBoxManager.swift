@@ -16,6 +16,8 @@ import Foundation
 @MainActor
 public final class FileBoxManager {
 
+    public init() {}
+
     /// UserDefaults key for the shared file box folder path.
     private static let folderPathKey = "fileBoxFolderPath"
 
@@ -98,6 +100,7 @@ public final class FileBoxManager {
                     attributes: nil
                 )
             }
+            Self.ensureWatching()
         }
     }
 
@@ -124,6 +127,7 @@ public final class FileBoxManager {
 
     /// List all files in the shared folder.
     func files() -> [URL] {
+        Self.ensureWatching()
         let dir = Self.folderURL
         return (try? FileManager.default.contentsOfDirectory(
             at: dir,
@@ -134,7 +138,7 @@ public final class FileBoxManager {
 
     /// Copy or move a file into the shared folder. Returns the destination URL.
     /// Mode is read from UserDefaults `"fileBoxMode"` — `"copy"` (default) or `"move"`.
-    func addFile(_ sourceURL: URL) -> URL? {
+    public func addFile(_ sourceURL: URL) -> URL? {
         let dir = Self.folderURL
         let destURL = dir.appendingPathComponent(sourceURL.lastPathComponent)
 
@@ -166,5 +170,82 @@ public final class FileBoxManager {
     /// Delete a specific file from storage.
     func deleteFile(_ fileURL: URL) {
         try? FileManager.default.removeItem(at: fileURL)
+    }
+
+    // MARK: - Directory watching
+
+    /// Posted when the file box folder contents change externally.
+    public static let fileBoxDidChangeNotification = Notification.Name("TmpspaceFileBoxDidChange")
+
+    private nonisolated(unsafe) static var directoryWatcherFD: Int32 = -1
+    private nonisolated(unsafe) static var directoryWatcher: DispatchSourceFileSystemObject?
+    private nonisolated(unsafe) static var watcherDebounceItem: DispatchWorkItem?
+    private nonisolated(unsafe) static var watchedPath: String?
+    private static let watcherQueue = DispatchQueue(label: "com.tmpspace.filebox.watcher")
+
+    /// Ensure the directory watcher is running for the current folder.
+    static func ensureWatching() {
+        let current = resolveFolderURL().path
+        guard watchedPath != current else { return }
+        startWatching()
+    }
+
+    /// Start monitoring the file box folder for external changes.
+    static func startWatching() {
+        stopWatching()
+
+        let folderPath = resolveFolderURL().path
+        if !FileManager.default.fileExists(atPath: folderPath) {
+            try? FileManager.default.createDirectory(
+                atPath: folderPath,
+                withIntermediateDirectories: true
+            )
+        }
+
+        let fd = open(folderPath, O_EVTONLY)
+        guard fd >= 0 else { return }
+
+        watchedPath = folderPath
+        directoryWatcherFD = fd
+
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .delete, .rename],
+            queue: watcherQueue
+        )
+
+        source.setEventHandler {
+            watcherDebounceItem?.cancel()
+            let item = DispatchWorkItem {
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(
+                        name: fileBoxDidChangeNotification,
+                        object: nil
+                    )
+                }
+            }
+            watcherDebounceItem = item
+            watcherQueue.asyncAfter(deadline: .now() + 0.5, execute: item)
+        }
+
+        source.setCancelHandler {
+            close(fd)
+        }
+
+        source.resume()
+        directoryWatcher = source
+    }
+
+    /// Stop monitoring the file box folder.
+    static func stopWatching() {
+        watcherDebounceItem?.cancel()
+        watcherDebounceItem = nil
+        directoryWatcher?.cancel()
+        directoryWatcher = nil
+        if directoryWatcherFD >= 0 {
+            close(directoryWatcherFD)
+            directoryWatcherFD = -1
+        }
+        watchedPath = nil
     }
 }

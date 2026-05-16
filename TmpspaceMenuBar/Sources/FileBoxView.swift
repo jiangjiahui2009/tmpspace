@@ -19,6 +19,9 @@ final class FileBoxView: NSView {
     /// Called when the user right-clicks and selects "删除".
     var onDeleteFile: ((URL) -> Void)?
 
+    /// Observer for external file box folder changes.
+    private var fileBoxChangeObserver: NSObjectProtocol?
+
     /// The collection view displaying file items.
     private var collectionView: NSCollectionView!
     private var scrollView: NSScrollView!
@@ -33,6 +36,16 @@ final class FileBoxView: NSView {
         wantsLayer = true
         setUp()
         registerForDraggedTypes([.fileURL])
+
+        fileBoxChangeObserver = NotificationCenter.default.addObserver(
+            forName: FileBoxManager.fileBoxDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.reloadFilesFromDisk()
+            }
+        }
     }
 
     @available(*, unavailable)
@@ -108,6 +121,12 @@ final class FileBoxView: NSView {
             forLocal: false
         )
         collectionView.reloadData()
+    }
+
+    /// Reload files from the shared folder (triggered by external directory changes).
+    func reloadFilesFromDisk() {
+        let files = FileBoxManager().files()
+        reload(with: files)
     }
 
     override func draw(_ dirtyRect: NSRect) {

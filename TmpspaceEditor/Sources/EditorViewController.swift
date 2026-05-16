@@ -419,7 +419,7 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             guard settings.taskToggleSound else { return }
             // Try the bundled notify.wav first, then system "Pop", then haptics.
             var played = false
-            if let url = Bundle.main.url(forResource: "notify", withExtension: "wav"),
+            if let url = Bundle.module.url(forResource: "notify", withExtension: "wav"),
                let sound = NSSound(contentsOf: url, byReference: true) {
                 sound.play()
                 played = true

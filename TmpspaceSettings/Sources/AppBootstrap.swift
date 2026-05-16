@@ -80,12 +80,12 @@ final class AppBootstrap: NSObject {
             }
         }
 
-        // ── Quick Copy Shortcut (disabled) ──────────────────────
-        // GlobalShortcutManager.shared.onQuickCopyPressed = { [weak self] in
-        //     Task { @MainActor [weak self] in
-        //         self?.handleQuickCopy()
-        //     }
-        // }
+        // ── Quick Move Shortcut ─────────────────────────
+        GlobalShortcutManager.shared.onQuickCopyPressed = { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.handleQuickMoveFiles()
+            }
+        }
 
         // ── Notifications ───────────────────────────────────────
         NotificationCenter.default.addObserver(
@@ -188,10 +188,57 @@ final class AppBootstrap: NSObject {
         FileBoxManager.stopSecurityScopedAccess()
     }
 
-    // MARK: - Quick Copy (disabled)
+    // MARK: - Quick Move (Cmd+;)
 
-    // private func handleQuickCopy() { ... }
-    // private static func readSelectedTextViaAccessibility() -> String? { ... }
-    // private static func showAccessibilityPermissionPrompt() { ... }
-    // private static func readPasteboardText(_ pb: NSPasteboard) -> String { ... }
+    /// Reads the currently selected files from Finder via AppleScript and moves/copies
+    /// them into the file box folder.
+    private func handleQuickMoveFiles() {
+        let script = """
+        tell application "Finder"
+            set selectedItems to selection
+            if (count of selectedItems) > 0 then
+                set output to ""
+                repeat with i from 1 to count of selectedItems
+                    set output to output & (POSIX path of (item i of selectedItems as alias))
+                    if i < count of selectedItems then set output to output & "\n"
+                end repeat
+                return output
+            end if
+        end tell
+        """
+
+        let appleScript = NSAppleScript(source: script)
+        var error: NSDictionary?
+        let result = appleScript?.executeAndReturnError(&error)
+
+        guard error == nil,
+              let paths = result?.stringValue,
+              !paths.isEmpty else {
+            // No selection in Finder, or AppleScript failed.
+            if let error {
+                DebugLog.log("QuickMove AppleScript error: \(error)")
+            }
+            return
+        }
+
+        let fileManager = FileBoxManager()
+        var addedCount = 0
+        for line in paths.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+            let url = URL(fileURLWithPath: trimmed)
+            guard FileManager.default.fileExists(atPath: url.path) else { continue }
+            if fileManager.addFile(url) != nil {
+                addedCount += 1
+            }
+        }
+
+        if addedCount > 0 {
+            // Notify panels so their file boxes refresh.
+            NotificationCenter.default.post(
+                name: .tmpspaceDropZoneDidReceiveFiles,
+                object: nil
+            )
+        }
+    }
 }

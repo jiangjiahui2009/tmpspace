@@ -65,18 +65,18 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             modifiers: savedModifiers
         )
 
-        // ── Quick Copy shortcut (disabled) ──────────────────────
-        // let savedQuickCopyKey = UserDefaults.standard.string(forKey: "quickCopyShortcutKey")
-        //     ?? Constants.defaultQuickCopyKey
-        // let savedQuickCopyModifiersRaw = UInt(
-        //     UserDefaults.standard.integer(forKey: "quickCopyShortcutModifiers")
-        // )
-        // let savedQuickCopyModifiers = NSEvent.ModifierFlags(rawValue: savedQuickCopyModifiersRaw)
-        //
-        // GlobalShortcutManager.shared.registerQuickCopyShortcut(
-        //     key: savedQuickCopyKey,
-        //     modifiers: savedQuickCopyModifiers
-        // )
+        // ── Quick Move shortcut ──────────────────────────
+        let savedQuickCopyKey = UserDefaults.standard.string(forKey: "quickCopyShortcutKey")
+            ?? Constants.defaultQuickCopyKey
+        let savedQuickCopyModifiersRaw = UInt(
+            UserDefaults.standard.integer(forKey: "quickCopyShortcutModifiers")
+        )
+        let savedQuickCopyModifiers = NSEvent.ModifierFlags(rawValue: savedQuickCopyModifiersRaw)
+
+        GlobalShortcutManager.shared.registerQuickCopyShortcut(
+            key: savedQuickCopyKey,
+            modifiers: savedQuickCopyModifiers
+        )
 
         // Re-register the shortcut when the user changes it in Settings.
         NotificationCenter.default.addObserver(
@@ -89,23 +89,36 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // ── Quick Copy shortcut re-registration (disabled) ──────
-        // NotificationCenter.default.addObserver(
-        //     forName: Notification.Name("GlobalQuickCopyShortcutDidChange"),
-        //     object: nil,
-        //     queue: .main
-        // ) { [weak self] _ in
-        //     Task { @MainActor [weak self] in
-        //         self?.reregisterQuickCopyShortcut()
-        //     }
-        // }
+        // ── Quick Move shortcut re-registration ─────────
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name("GlobalQuickCopyShortcutDidChange"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.reregisterQuickCopyShortcut()
+            }
+        }
 
         // Initialize the ThemeManager to begin observing appearance changes.
         _ = ThemeManager.shared
 
         // ── Bootstrap all modules ──────────────────────────────────
-        guard let distPath = Bundle.main.path(forResource: "dist", ofType: nil) else {
-            fatalError("CoreEditor dist/ not found in app bundle. Expected at Resources/dist/")
+        // SPM-built binaries don't have a proper app bundle with Resources/.
+        // Fall back through a chain of known paths for CoreEditor dist/.
+        let distPath: String
+        if let bundled = Bundle.main.path(forResource: "dist", ofType: nil) {
+            distPath = bundled
+        } else {
+            let home = FileManager.default.homeDirectoryForCurrentUser
+            let candidates: [String] = [
+                home.appendingPathComponent("Desktop/tmpspace/MarkEdit-main/CoreEditor/dist").path,
+                home.appendingPathComponent("Desktop/Flashbox/MarkEdit-main/CoreEditor/dist").path,
+            ]
+            guard let found = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
+                fatalError("CoreEditor dist/ not found. Tried bundle + \(candidates.joined(separator: ", "))")
+            }
+            distPath = found
         }
 
         do {

@@ -332,6 +332,11 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
                 return nil
             }
 
+            if modifierFlags == .command, key == "l" {
+                self.editorProvider?.executeCommand(for: self.panelModel.id, command: .taskList)
+                return nil
+            }
+
             return event
         }
     }

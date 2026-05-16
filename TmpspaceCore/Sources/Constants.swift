@@ -14,14 +14,14 @@ public enum Constants {
     /// Default modifier flags for the global shortcut (option + shift).
     public static let defaultShortcutModifiers: NSEvent.ModifierFlags = [.option, .shift]
 
-    /// Default keyboard shortcut key for quick copy (Finder files → editor).
-    public static let defaultQuickCopyKey: String = "c"
+    /// Default keyboard shortcut key for quick move (Finder files → temp space).
+    public static let defaultQuickCopyKey: String = ";"
 
-    /// Default modifier flags raw value for quick copy (option + shift = 655360).
-    public static let defaultQuickCopyModifierRawValue: UInt = NSEvent.ModifierFlags([.option, .shift]).rawValue
+    /// Default modifier flags raw value for quick move (command = 1048840).
+    public static let defaultQuickCopyModifierRawValue: UInt = NSEvent.ModifierFlags.command.rawValue
 
-    /// Default modifier flags for the quick copy shortcut (option + shift).
-    public static let defaultQuickCopyModifiers: NSEvent.ModifierFlags = [.option, .shift]
+    /// Default modifier flags for the quick move shortcut (command).
+    public static let defaultQuickCopyModifiers: NSEvent.ModifierFlags = .command
 
     /// Debounce interval (milliseconds) before auto-saving panel content.
     public static let autoSaveDebounceMs: UInt64 = 500
