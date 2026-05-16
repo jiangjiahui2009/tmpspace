@@ -228,7 +228,7 @@ final class AppBootstrap: NSObject {
             guard !trimmed.isEmpty else { continue }
             let url = URL(fileURLWithPath: trimmed)
             guard FileManager.default.fileExists(atPath: url.path) else { continue }
-            if fileManager.addFile(url) != nil {
+            if fileManager.addFile(url, mode: "move") != nil {
                 addedCount += 1
             }
         }

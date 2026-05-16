@@ -430,7 +430,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         let baseName = (name as NSString).lastPathComponent
 
         for ext in ["png", "svg"] {
-            guard let path = Bundle.main.path(forResource: baseName, ofType: ext, inDirectory: directory) else {
+            guard let path = Bundle.module.path(forResource: baseName, ofType: ext, inDirectory: directory) else {
                 continue
             }
 

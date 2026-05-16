@@ -16,7 +16,7 @@ public struct SettingsView: View {
 
     // MARK: - General Preferences
 
-    @AppStorage("launchAtLogin") private var launchAtLogin = false
+    @AppStorage("launchAtLogin") private var launchAtLogin = true
     @AppStorage("alwaysOnTop") private var alwaysOnTop = true
     @AppStorage("fileBoxFolderPath") private var fileBoxFolderPath = ""
     @AppStorage("fileBoxMode") private var fileBoxMode = "copy"
@@ -144,17 +144,32 @@ public struct SettingsView: View {
                 Text("点击上方区域，然后按下你想要的组合键完成录制。")
             }
 
-            // ── Quick Copy shortcut (disabled) ──────────────────
-            // Section {
-            //     VStack(alignment: .leading, spacing: 12) {
-            //         Button { startQuickCopyRecording() } label: { ... }
-            //         HStack { Button("恢复默认") { resetQuickCopyToDefault() } ... }
-            //     }
-            // } header: {
-            //     Text("快速复制快捷键")
-            // } footer: {
-            //     Text("按下快捷键将 Finder 中选中的文件路径追加到编辑器末尾。")
-            // }
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("⌘ ;")
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .frame(minWidth: 52, alignment: .leading)
+                        Text("快速移动文件")
+                            .foregroundStyle(.secondary)
+                    }
+                    Divider()
+                    HStack {
+                        Text("⌘ L")
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .frame(minWidth: 52, alignment: .leading)
+                        Text("转为待办事项")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("功能快捷键")
+            } footer: {
+                Text("以下快捷键为系统内置，不可修改。Cmd+; 将 Finder 选中的文件移动到临时空间；Cmd+L 将选中的文本转换为待办事项列表。")
+            }
 
             Section {
                 HStack {

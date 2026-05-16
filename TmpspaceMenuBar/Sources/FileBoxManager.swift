@@ -19,25 +19,25 @@ public final class FileBoxManager {
     public init() {}
 
     /// UserDefaults key for the shared file box folder path.
-    private static let folderPathKey = "fileBoxFolderPath"
+    private nonisolated static let folderPathKey = "fileBoxFolderPath"
 
     /// UserDefaults key for the security-scoped bookmark (sandbox persisted access).
-    private static let bookmarkKey = "fileBoxFolderBookmark"
+    private nonisolated static let bookmarkKey = "fileBoxFolderBookmark"
 
     /// Retains the security-scoped URL so the kernel doesn't revoke access.
-    private static var securedFolderURL: URL?
+    private nonisolated(unsafe) static var securedFolderURL: URL?
 
     // MARK: - Sandbox detection
 
     /// `true` when the app is running inside the macOS App Sandbox.
-    private static var isSandboxed: Bool {
+    private nonisolated static var isSandboxed: Bool {
         let containerBase = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Containers/com.tmpspace.app")
         return FileManager.default.fileExists(atPath: containerBase.path)
     }
 
     /// Default folder when no user-chosen folder is configured.
-    private static var defaultFolderURL: URL {
+    private nonisolated static var defaultFolderURL: URL {
         let home = FileManager.default.homeDirectoryForCurrentUser
         if isSandboxed {
             // App sandbox container Documents — always writable without bookmarks.
@@ -52,7 +52,7 @@ public final class FileBoxManager {
 
     /// Resolve the working folder: security-scoped bookmark first, then
     /// the plain path from UserDefaults, then the default location.
-    public static func resolveFolderURL() -> URL {
+    public nonisolated static func resolveFolderURL() -> URL {
         // 1. Try restoring a security-scoped bookmark (sandbox-safe).
         if let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) {
             var isStale = false
@@ -65,8 +65,8 @@ public final class FileBoxManager {
                 if resolved.startAccessingSecurityScopedResource() {
                     securedFolderURL = resolved  // retain access for app lifetime
                     if isStale {
-                        // Re-save a fresh bookmark.
-                        saveBookmark(for: resolved)
+                        // Re-save a fresh bookmark on main queue (saveBookmark is MainActor).
+                        DispatchQueue.main.async { saveBookmark(for: resolved) }
                     }
                     return resolved
                 }
@@ -137,8 +137,9 @@ public final class FileBoxManager {
     }
 
     /// Copy or move a file into the shared folder. Returns the destination URL.
-    /// Mode is read from UserDefaults `"fileBoxMode"` — `"copy"` (default) or `"move"`.
-    public func addFile(_ sourceURL: URL) -> URL? {
+    /// - Parameter sourceURL: The file to import.
+    /// - Parameter mode: `"copy"` or `"move"`. When nil, reads `fileBoxMode` from UserDefaults.
+    public func addFile(_ sourceURL: URL, mode: String? = nil) -> URL? {
         let dir = Self.folderURL
         let destURL = dir.appendingPathComponent(sourceURL.lastPathComponent)
 
@@ -153,16 +154,16 @@ public final class FileBoxManager {
             counter += 1
         }
 
-        let mode = UserDefaults.standard.string(forKey: "fileBoxMode") ?? "copy"
+        let effectiveMode = mode ?? UserDefaults.standard.string(forKey: "fileBoxMode") ?? "copy"
         do {
-            if mode == "move" {
+            if effectiveMode == "move" {
                 try FileManager.default.moveItem(at: sourceURL, to: uniqueURL)
             } else {
                 try FileManager.default.copyItem(at: sourceURL, to: uniqueURL)
             }
             return uniqueURL
         } catch {
-            DebugLog.log("FileBoxManager: failed to \(mode) \(sourceURL.path): \(error)")
+            DebugLog.log("FileBoxManager: failed to \(effectiveMode) \(sourceURL.path): \(error)")
             return nil
         }
     }
@@ -181,17 +182,17 @@ public final class FileBoxManager {
     private nonisolated(unsafe) static var directoryWatcher: DispatchSourceFileSystemObject?
     private nonisolated(unsafe) static var watcherDebounceItem: DispatchWorkItem?
     private nonisolated(unsafe) static var watchedPath: String?
-    private static let watcherQueue = DispatchQueue(label: "com.tmpspace.filebox.watcher")
+    private nonisolated static let watcherQueue = DispatchQueue(label: "com.tmpspace.filebox.watcher")
 
     /// Ensure the directory watcher is running for the current folder.
-    static func ensureWatching() {
+    nonisolated static func ensureWatching() {
         let current = resolveFolderURL().path
         guard watchedPath != current else { return }
         startWatching()
     }
 
     /// Start monitoring the file box folder for external changes.
-    static func startWatching() {
+    nonisolated static func startWatching() {
         stopWatching()
 
         let folderPath = resolveFolderURL().path
@@ -237,7 +238,7 @@ public final class FileBoxManager {
     }
 
     /// Stop monitoring the file box folder.
-    static func stopWatching() {
+    nonisolated static func stopWatching() {
         watcherDebounceItem?.cancel()
         watcherDebounceItem = nil
         directoryWatcher?.cancel()
