@@ -21,6 +21,8 @@ public struct SettingsView: View {
     @AppStorage("fileBoxFolderPath") private var fileBoxFolderPath = ""
     @AppStorage("fileBoxMode") private var fileBoxMode = "copy"
     @AppStorage("menuBarDropZoneEnabled") private var menuBarDropZoneEnabled = false
+    @AppStorage("obsidianNotePath") private var obsidianNotePath = ""
+    @AppStorage("obsidianNoteEnabled") private var obsidianNoteEnabled = false
 
     // MARK: - Shortcut Preferences
 
@@ -208,6 +210,29 @@ public struct SettingsView: View {
             }
 
             Section {
+                Toggle("启用obsidian笔记", isOn: $obsidianNoteEnabled)
+
+                if obsidianNoteEnabled {
+                    HStack {
+                        Text("笔记路径")
+                            .foregroundStyle(.secondary)
+                        Text(obsidianNoteDisplayPath)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .foregroundStyle(obsidianNotePath.isEmpty ? .tertiary : .primary)
+                    }
+
+                    Button("选择...") {
+                        chooseObsidianNoteFile()
+                    }
+                }
+            } header: {
+                Text("obsidian笔记")
+            } footer: {
+                Text("选择一个 .md 文件笔记，配置后可被快捷打开与编辑。")
+            }
+
+            Section {
                 Toggle("开机自启", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, newValue in
                         configureLaunchAtLogin(enabled: newValue)
@@ -307,6 +332,27 @@ public struct SettingsView: View {
     /// Display-friendly abbreviated path.
     private var fileBoxDisplayPath: String {
         (fileBoxFolderURL.path as NSString).abbreviatingWithTildeInPath
+    }
+
+    // MARK: - Obsidian Note helpers
+
+    /// Display-friendly path for the obsidian note.
+    private var obsidianNoteDisplayPath: String {
+        if obsidianNotePath.isEmpty { return "未配置" }
+        return (obsidianNotePath as NSString).abbreviatingWithTildeInPath
+    }
+
+    /// Present an NSOpenPanel to choose a .md file for the obsidian note.
+    private func chooseObsidianNoteFile() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.plainText]
+        panel.message = "选择一个 Markdown 文件作为常驻笔记"
+        panel.prompt = "选择"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        obsidianNotePath = url.path
     }
 
     /// Present an NSOpenPanel to choose a new file box folder.

@@ -31,6 +31,13 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
     public let panelManager = PanelManager()
 
+    /// Dedicated controller for the obsidian note panel (independent of the 5 regular panels).
+    private var obsidianPanelController: FloatingPanelController?
+
+    /// Tracked obsidian state for detecting setting changes.
+    private var lastObsidianEnabled = false
+    private var lastObsidianPath = ""
+
     /// Syntax highlighting themes shown in the menu bar theme submenu.
     private static let availableThemes: [(id: String, label: String)] = [
         ("system",               "跟随系统"),
@@ -82,6 +89,29 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
             name: .tmpspaceMenuBarIconDidChange,
             object: nil
         )
+
+        // Observe obsidian note settings — close panel when disabled or path cleared.
+        lastObsidianEnabled = UserDefaults.standard.bool(forKey: "obsidianNoteEnabled")
+        lastObsidianPath = UserDefaults.standard.string(forKey: "obsidianNotePath") ?? ""
+        NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let currentEnabled = UserDefaults.standard.bool(forKey: "obsidianNoteEnabled")
+                let currentPath = UserDefaults.standard.string(forKey: "obsidianNotePath") ?? ""
+                let shouldClose = (self.lastObsidianEnabled && !currentEnabled)
+                               || (!self.lastObsidianPath.isEmpty && currentPath.isEmpty)
+                if shouldClose {
+                    self.obsidianPanelController?.window?.orderOut(nil)
+                    self.obsidianPanelController = nil
+                }
+                self.lastObsidianEnabled = currentEnabled
+                self.lastObsidianPath = currentPath
+            }
+        }
     }
 
     // MARK: - Status bar item
@@ -172,28 +202,33 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
         statusMenu.addItem(.separator())
 
-        // ---- Dynamic panel list ----
+        // ---- 编辑面板 ----
         for (index, panel) in panelManager.panels.enumerated() {
             let panelItem = NSMenuItem(
-                title: "编辑框 \(index + 1)",
-                action: nil,
+                title: "编辑面板 \(index + 1)",
+                action: #selector(menuTogglePanelVisibility(_:)),
                 keyEquivalent: ""
             )
-            panelItem.isEnabled = true
-
-            let submenu = NSMenu(title: "")
-            let deleteItem = NSMenuItem(
-                title: "删除",
-                action: #selector(menuDeletePanel(_:)),
-                keyEquivalent: ""
-            )
-            deleteItem.target = self
-            deleteItem.representedObject = panel.id as UUID
-            submenu.addItem(deleteItem)
-
-            statusMenu.setSubmenu(submenu, for: panelItem)
+            panelItem.target = self
+            panelItem.representedObject = panel.id as UUID
+            panelItem.state = panel.isVisible ? .on : .off
             statusMenu.addItem(panelItem)
         }
+
+        statusMenu.addItem(.separator())
+
+        // ---- obsidian笔记 ----
+        let obsidianEnabled = UserDefaults.standard.bool(forKey: "obsidianNoteEnabled")
+        let obsidianPath = UserDefaults.standard.string(forKey: "obsidianNotePath") ?? ""
+        let hasObsidianPath = obsidianEnabled && !obsidianPath.isEmpty && FileManager.default.fileExists(atPath: obsidianPath)
+        let obsidianItem = NSMenuItem(
+            title: "obsidian笔记",
+            action: #selector(menuOpenObsidianNote),
+            keyEquivalent: ""
+        )
+        obsidianItem.target = self
+        obsidianItem.isEnabled = hasObsidianPath
+        statusMenu.addItem(obsidianItem)
 
         statusMenu.addItem(.separator())
 
@@ -284,6 +319,51 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
     @objc private func menuDeletePanel(_ sender: NSMenuItem) {
         guard let id = sender.representedObject as? UUID else { return }
         panelManager.deletePanel(id: id)
+    }
+
+    @objc private func menuTogglePanelVisibility(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? UUID else { return }
+        panelManager.togglePanelVisibility(id: id)
+    }
+
+    @objc private func menuOpenObsidianNote() {
+        guard UserDefaults.standard.bool(forKey: "obsidianNoteEnabled"),
+              let path = UserDefaults.standard.string(forKey: "obsidianNotePath"),
+              !path.isEmpty,
+              FileManager.default.fileExists(atPath: path) else { return }
+
+        // If the obsidian panel already exists, just show it.
+        if let controller = obsidianPanelController {
+            controller.window?.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            NSApp.setActivationPolicy(.accessory)
+            return
+        }
+
+        // Create a dedicated panel model and controller for the obsidian note.
+        let model = PanelModel()
+        let controller = FloatingPanelController(panelModel: model)
+        controller.panelManager = panelManager
+        controller.editorProvider = panelManager.editorProvider
+        controller.onCreateNewPanel = { [weak self] in
+            _ = self?.panelManager.createNewPanel()
+        }
+        // Obsidian panel content lives in-memory only; no auto-save needed.
+
+        let fileName = (path as NSString).lastPathComponent
+        controller.setToolbarTitle(fileName)
+        obsidianPanelController = controller
+        controller.window?.makeKeyAndOrderFront(nil)
+
+        // Load the .md file content after the editor is ready.
+        if let content = try? String(contentsOfFile: path, encoding: .utf8) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.panelManager.editorProvider?.setContent(for: model.id, content: content)
+            }
+        }
+
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.setActivationPolicy(.accessory)
     }
 
     @objc private func menuOpenPreferences() {

@@ -46,6 +46,9 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
     /// The toolbar container view that sits at the top of the content area.
     private var toolbarView: NSView!
 
+    /// Title label in the toolbar center (used by obsidian panel to show .md file name).
+    private var toolbarTitleLabel: NSTextField!
+
     /// Manages temporary file storage for this panel.
     let fileBoxManager = FileBoxManager()
 
@@ -383,6 +386,15 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         )
         bar.addSubview(formatBtn)
 
+        // --- Title label (centered, hidden by default) ---
+        toolbarTitleLabel = NSTextField(labelWithString: "")
+        toolbarTitleLabel.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        toolbarTitleLabel.textColor = .secondaryLabelColor
+        toolbarTitleLabel.alignment = .left
+        toolbarTitleLabel.lineBreakMode = .byTruncatingMiddle
+        toolbarTitleLabel.isHidden = true
+        bar.addSubview(toolbarTitleLabel)
+
         // --- More button (right-aligned, shows popup menu on click) ---
         let moreBtn = makeToolbarButton(
             symbolName: "ellipsis.circle",
@@ -392,6 +404,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         bar.addSubview(moreBtn)
 
         // Layout
+        toolbarTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         miniaturizeBtn.translatesAutoresizingMaskIntoConstraints = false
         fileBoxBtn.translatesAutoresizingMaskIntoConstraints = false
         formatBtn.translatesAutoresizingMaskIntoConstraints = false
@@ -403,6 +416,11 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
             miniaturizeBtn.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
             miniaturizeBtn.widthAnchor.constraint(equalToConstant: 28),
             miniaturizeBtn.heightAnchor.constraint(equalToConstant: 24),
+
+            // Title label (right of miniaturize button)
+            toolbarTitleLabel.leadingAnchor.constraint(equalTo: miniaturizeBtn.trailingAnchor, constant: 6),
+            toolbarTitleLabel.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
+            toolbarTitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: formatBtn.leadingAnchor, constant: -8),
 
             // File Box button (to the left of more button)
             fileBoxBtn.trailingAnchor.constraint(equalTo: moreBtn.leadingAnchor, constant: -6),
@@ -424,6 +442,12 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         ])
 
         return bar
+    }
+
+    /// Set the toolbar center title (used by obsidian panel to show .md file name).
+    func setToolbarTitle(_ title: String) {
+        toolbarTitleLabel.stringValue = title
+        toolbarTitleLabel.isHidden = title.isEmpty
     }
 
     private func makeToolbarButton(
