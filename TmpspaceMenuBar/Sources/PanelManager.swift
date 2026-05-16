@@ -134,8 +134,21 @@ public final class PanelManager: MenuBarManagerProtocol {
 
     /// Delete a panel by ID — closes its window and removes it from the array.
     /// If the last panel is deleted a fresh one is auto-created.
+    /// Prompts for confirmation when the panel has content.
     public func deletePanel(id: UUID) {
         guard let controller = panelControllers[id] else { return }
+
+        let content = editorProvider?.getContent(for: id) ?? panels.first(where: { $0.id == id })?.content ?? ""
+        if !content.isEmpty {
+            let alert = NSAlert()
+            alert.messageText = "确认删除"
+            alert.informativeText = "该编辑面板不为空，删除后内容将丢失。确定要删除吗？"
+            alert.addButton(withTitle: "删除")
+            alert.addButton(withTitle: "取消")
+            alert.alertStyle = .warning
+            let response = alert.runModal()
+            guard response == .alertFirstButtonReturn else { return }
+        }
 
         controller.closePanelCompletely()
         panelControllers.removeValue(forKey: id)
@@ -200,6 +213,60 @@ public final class PanelManager: MenuBarManagerProtocol {
     }
 
     // MARK: - Visibility
+
+    /// Toggle a single panel's visibility by ID.
+    /// Shows it if hidden, hides it if visible.
+    public func togglePanelVisibility(id: UUID) {
+        guard let index = panels.firstIndex(where: { $0.id == id }) else { return }
+
+        if panels[index].isVisible {
+            hidePanel(id: id)
+        } else {
+            showPanel(id: id)
+        }
+    }
+
+    /// Show a single panel by ID.
+    public func showPanel(id: UUID) {
+        guard let index = panels.firstIndex(where: { $0.id == id }) else { return }
+
+        if panelControllers[id] == nil {
+            buildController(for: panels[index], at: index)
+        }
+        guard let controller = panelControllers[id] else { return }
+
+        panels[index].isVisible = true
+        controller.panelModel.isVisible = true
+        applySavedFrame(to: controller, model: panels[index])
+        controller.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.setActivationPolicy(.accessory)
+
+        persist()
+        NotificationCenter.default.post(
+            name: .tmpspacePanelsVisibilityDidChange,
+            object: self
+        )
+    }
+
+    /// Hide a single panel by ID.
+    public func hidePanel(id: UUID) {
+        guard let index = panels.firstIndex(where: { $0.id == id }) else { return }
+
+        if let window = panelControllers[id]?.window {
+            panels[index].positionX = window.frame.origin.x
+            panels[index].positionY = window.frame.origin.y
+        }
+        panels[index].isVisible = false
+        panelControllers[id]?.panelModel.isVisible = false
+        panelControllers[id]?.window?.orderOut(nil)
+
+        persist()
+        NotificationCenter.default.post(
+            name: .tmpspacePanelsVisibilityDidChange,
+            object: self
+        )
+    }
 
     public func togglePanels() {
         DebugLog.log("togglePanels — count=\(panels.count) visible=\(panels.map(\.isVisible))")
