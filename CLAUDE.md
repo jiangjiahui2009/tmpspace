@@ -1,6 +1,6 @@
 # tmpspace
 
-macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。
+macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。当前基线 v1.4。
 
 ## 模块架构
 
@@ -28,6 +28,14 @@ swift build
 - CoreEditor (vendored): `MarkEdit-main/CoreEditor/dist/`
 - 配置回退: `~/Desktop/tmpspace/MarkEdit-main/CoreEditor/dist`
 - App Support: `~/Library/Application Support/Tmpspace/`
+
+## v1.4 新增
+
+- **面板独立显隐**：右键菜单「编辑面板 X」点击切换显示/隐藏（对号标记）。`PanelManager.togglePanelVisibility(id:)`。
+- **删除确认**：面板有内容时删除弹出二次确认。`PanelManager.deletePanel(id:)` 内检查 `editorProvider?.getContent(for:)`。
+- **obsidian 笔记**：偏好配置 .md 路径后，右键菜单「obsidian笔记」打开独立编辑面板（不占用5个常规面板名额）。面板关闭保留编辑状态，偏好关闭开关或清空路径自动关闭面板。工具栏显示文件名。
+  - 追踪：`MenuBarController.obsidianPanelController`（独立于 `PanelManager.panels`）
+  - 偏好 key：`obsidianNoteEnabled`（Bool 开关）、`obsidianNotePath`（String 路径）
 
 ## 已知坑点
 
