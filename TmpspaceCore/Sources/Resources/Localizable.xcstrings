@@ -1,0 +1,626 @@
+{
+  "sourceLanguage" : "zh-Hans",
+  "strings" : {
+    "关于 Tmpspace" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "About Tmpspace" } }
+      }
+    },
+    "偏好设置..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Preferences..." } }
+      }
+    },
+    "退出 Tmpspace" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Quit Tmpspace" } }
+      }
+    },
+    "新建编辑框" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "New Panel" } }
+      }
+    },
+    "关闭" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Close" } }
+      }
+    },
+    "撤销" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Undo" } }
+      }
+    },
+    "重做" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Redo" } }
+      }
+    },
+    "剪切" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Cut" } }
+      }
+    },
+    "拷贝" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Copy" } }
+      }
+    },
+    "粘贴" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Paste" } }
+      }
+    },
+    "全选" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Select All" } }
+      }
+    },
+    "最小化" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Minimize" } }
+      }
+    },
+    "跟随系统" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Follow System" } }
+      }
+    },
+    "浅色" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Light" } }
+      }
+    },
+    "深色" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Dark" } }
+      }
+    },
+    "暖黄" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Warm Yellow" } }
+      }
+    },
+    "冷蓝" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Cool Blue" } }
+      }
+    },
+    "柔绿" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Soft Green" } }
+      }
+    },
+    "淡紫" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Lavender" } }
+      }
+    },
+    "未命名" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Untitled" } }
+      }
+    },
+    "编辑器加载失败" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Editor Load Failed" } }
+      }
+    },
+    "找不到 CoreEditor dist/index.html。\n\n路径: %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Could not find CoreEditor dist/index.html.\n\nPath: %@" } }
+      }
+    },
+    "无序列表" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Bullet List" } }
+      }
+    },
+    "有序列表" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Numbered List" } }
+      }
+    },
+    "待办事项" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Task List" } }
+      }
+    },
+    "松开以存入临时空间" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Release to save to temp space" } }
+      }
+    },
+    "拖拽存入" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Drag to Save" } }
+      }
+    },
+    "拖拽存入临时空间" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Drag to save to temp space" } }
+      }
+    },
+    "确认删除" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Confirm Delete" } }
+      }
+    },
+    "该编辑面板不为空，删除后内容将丢失。确定要删除吗？" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "This panel is not empty. Deleting it will lose all content. Are you sure?" } }
+      }
+    },
+    "删除" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Delete" } }
+      }
+    },
+    "取消" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Cancel" } }
+      }
+    },
+    "打开临时空间文件夹" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Open Temp Space Folder" } }
+      }
+    },
+    "显示／隐藏" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Show/Hide" } }
+      }
+    },
+    "新建" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "New" } }
+      }
+    },
+    "编辑面板 %lld" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Panel %lld" } }
+      }
+    },
+    "obsidian笔记" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Obsidian Note" } }
+      }
+    },
+    "颜色主题" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Color Theme" } }
+      }
+    },
+    "窗口浮在最前" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Always on Top" } }
+      }
+    },
+    "退出" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Quit" } }
+      }
+    },
+    "冬日渐近·浅" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Winter is Coming · Light" } }
+      }
+    },
+    "冬日渐近·深" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Winter is Coming · Dark" } }
+      }
+    },
+    "极简·浅" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Minimal · Light" } }
+      }
+    },
+    "极简·深" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Minimal · Dark" } }
+      }
+    },
+    "夜猫子" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Night Owl" } }
+      }
+    },
+    "松木玫瑰·晨" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Rosé Pine · Dawn" } }
+      }
+    },
+    "松木玫瑰·夜" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Rosé Pine · Night" } }
+      }
+    },
+    "普通" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Normal" } }
+      }
+    },
+    "橙猫" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Orange Cat" } }
+      }
+    },
+    "黑猫" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Black Cat" } }
+      }
+    },
+    "黄猫" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Yellow Cat" } }
+      }
+    },
+    "咖啡" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Coffee" } }
+      }
+    },
+    "稀有" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Rare" } }
+      }
+    },
+    "隐藏面板" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Hide Panel" } }
+      }
+    },
+    "文件暂存" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "File Box" } }
+      }
+    },
+    "格式化" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Format" } }
+      }
+    },
+    "更多操作" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "More" } }
+      }
+    },
+    "保存为文档" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Save as Document" } }
+      }
+    },
+    "打开临时空间" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Open Temp Space" } }
+      }
+    },
+    "清空内容" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Clear Content" } }
+      }
+    },
+    "偏好设置" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Preferences" } }
+      }
+    },
+    "纯文本" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Plain Text" } }
+      }
+    },
+    "未命名.md" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Untitled.md" } }
+      }
+    },
+    "文件格式：" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "File Format:" } }
+      }
+    },
+    "Tmpspace 偏好设置" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Tmpspace Preferences" } }
+      }
+    },
+    "编辑器" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Editor" } }
+      }
+    },
+    "通用" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "General" } }
+      }
+    },
+    "个性化" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Personalization" } }
+      }
+    },
+    "窗口始终浮在最前" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Keep Windows Always on Top" } }
+      }
+    },
+    "开启后，tmpspace编辑面板将始终悬浮在其他窗口之上。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "When enabled, Tmpspace editor panels will always float above other windows." } }
+      }
+    },
+    "按下组合键…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Press shortcut keys..." } }
+      }
+    },
+    "(Esc 取消)" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "(Esc to cancel)" } }
+      }
+    },
+    "恢复默认" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Reset to Default" } }
+      }
+    },
+    "唤起快捷键" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Global Shortcut" } }
+      }
+    },
+    "点击上方区域，然后按下你想要的组合键完成录制。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Click the area above, then press your desired shortcut key combination." } }
+      }
+    },
+    "快速移动文件" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Quick File Move" } }
+      }
+    },
+    "转为待办事项" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Convert to Todo List" } }
+      }
+    },
+    "功能快捷键" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Feature Shortcuts" } }
+      }
+    },
+    "以下快捷键为系统内置，不可修改。Cmd+; 将 Finder 选中的文件移动到临时空间；Cmd+L 将选中的文本转换为待办事项列表。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "These shortcuts are built-in and cannot be changed. Cmd+; moves selected Finder files to the temp space. Cmd+L converts selected text to a todo list." } }
+      }
+    },
+    "文件夹" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Folder" } }
+      }
+    },
+    "菜单栏拖拽存入" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Menu Bar Drop Zone" } }
+      }
+    },
+    "编辑器隐藏时，拖拽文件到菜单栏图标即可存入临时空间。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "When editors are hidden, drag files to the menu bar icon to save them to the temp space." } }
+      }
+    },
+    "拖拽模式" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Drop Mode" } }
+      }
+    },
+    "复制" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Copy" } }
+      }
+    },
+    "拖入和拖出均为复制，原文件保留。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Both drag-in and drag-out copy files. Original files are preserved." } }
+      }
+    },
+    "移动" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Move" } }
+      }
+    },
+    "拖入和拖出均为移动，原文件不保留。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Both drag-in and drag-out move files. Original files are not preserved." } }
+      }
+    },
+    "打开文件夹" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Open Folder" } }
+      }
+    },
+    "更改..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Change..." } }
+      }
+    },
+    "拖拽模式决定文件是复制还是移动到目标位置。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "The drop mode determines whether files are copied or moved to the destination." } }
+      }
+    },
+    "启用obsidian笔记" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Enable Obsidian Note" } }
+      }
+    },
+    "笔记路径" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Note Path" } }
+      }
+    },
+    "选择..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Choose..." } }
+      }
+    },
+    "选择一个 .md 文件笔记，配置后可被快捷打开与编辑。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Select a .md note file to enable quick access and editing." } }
+      }
+    },
+    "开机自启" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Launch at Login" } }
+      }
+    },
+    "开启后，tmpspace将在登录时自动启动并在菜单栏中运行。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "When enabled, Tmpspace will automatically start at login and run in the menu bar." } }
+      }
+    },
+    "开箱图标" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Menu Bar Icons" } }
+      }
+    },
+    "默认" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Default" } }
+      }
+    },
+    "随机" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Random" } }
+      }
+    },
+    "未配置" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Not configured" } }
+      }
+    },
+    "选择一个 Markdown 文件作为常驻笔记" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Select a Markdown file as a pinned note" } }
+      }
+    },
+    "选择" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Select" } }
+      }
+    },
+    "选择文件盒子的存储文件夹" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Select a folder for the file box" } }
+      }
+    },
+    "系统字体" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "System Font" } }
+      }
+    },
+    "语法高亮主题" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Syntax Highlighting Theme" } }
+      }
+    },
+    "字体" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Font" } }
+      }
+    },
+    "字号:" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Font Size:" } }
+      }
+    },
+    "字体与字号" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Font & Size" } }
+      }
+    },
+    "编辑器的显示字体和大小（10–24 点）。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Editor display font and size (10–24 pt)." } }
+      }
+    },
+    "显示行号" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Show Line Numbers" } }
+      }
+    },
+    "显示当前行指示器" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Show Active Line Indicator" } }
+      }
+    },
+    "辅助显示" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Display Aids" } }
+      }
+    },
+    "行高" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Line Height" } }
+      }
+    },
+    "紧凑" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Compact" } }
+      }
+    },
+    "正常" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Normal" } }
+      }
+    },
+    "宽松" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Relaxed" } }
+      }
+    },
+    "行间距" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Line Spacing" } }
+      }
+    },
+    "待办事项勾选音效" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Task Toggle Sound" } }
+      }
+    },
+    "音效" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Sound" } }
+      }
+    },
+    "勾选待办事项时播放提示音。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Play a sound when toggling todo items." } }
+      }
+    },
+    "降低工具栏透明度" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Reduce Toolbar Transparency" } }
+      }
+    },
+    "工具栏外观" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Toolbar Appearance" } }
+      }
+    },
+    "开启后工具栏使用不透明背景，关闭后使用半透明模糊效果。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "When enabled, the toolbar uses an opaque background. When disabled, a translucent blur effect is used." } }
+      }
+    },
+    "选择编辑器显示时菜单栏的图标。隐藏状态下始终使用默认图标。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "value" : "Select the menu bar icon shown when editors are visible. The default icon is always used when hidden." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

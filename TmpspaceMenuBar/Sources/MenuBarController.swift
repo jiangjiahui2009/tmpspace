@@ -40,21 +40,21 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
     /// Syntax highlighting themes shown in the menu bar theme submenu.
     private static let availableThemes: [(id: String, label: String)] = [
-        ("system",               "跟随系统"),
+        ("system",               Txt.str("跟随系统")),
         ("github-light",         "GitHub Light"),
         ("github-dark",          "GitHub Dark"),
         ("xcode-light",          "Xcode Light"),
         ("xcode-dark",           "Xcode Dark"),
         ("dracula",              "Dracula"),
         ("cobalt",               "Cobalt"),
-        ("winter-is-coming-light", "冬日渐近·浅"),
-        ("winter-is-coming-dark",  "冬日渐近·深"),
-        ("minimal-light",        "极简·浅"),
-        ("minimal-dark",         "极简·深"),
+        ("winter-is-coming-light", Txt.str("冬日渐近·浅")),
+        ("winter-is-coming-dark",  Txt.str("冬日渐近·深")),
+        ("minimal-light",        Txt.str("极简·浅")),
+        ("minimal-dark",         Txt.str("极简·深")),
         ("synthwave84",          "Synthwave '84"),
-        ("night-owl",            "夜猫子"),
-        ("rose-pine-dawn",       "松木玫瑰·晨"),
-        ("rose-pine",            "松木玫瑰·夜"),
+        ("night-owl",            Txt.str("夜猫子")),
+        ("rose-pine-dawn",       Txt.str("松木玫瑰·晨")),
+        ("rose-pine",            Txt.str("松木玫瑰·夜")),
         ("solarized-light",      "Solarized Light"),
         ("solarized-dark",       "Solarized Dark"),
     ]
@@ -179,7 +179,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
         // ---- 显示/隐藏 ----
         let toggleItem = NSMenuItem(
-            title: "显示/隐藏",
+            title: Txt.str("显示/隐藏"),
             action: #selector(menuTogglePanels),
             keyEquivalent: currentShortcutKey
         )
@@ -191,7 +191,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
         // ---- 新建 ----
         let newItem = NSMenuItem(
-            title: "新建",
+            title: Txt.str("新建"),
             action: #selector(menuCreatePanel),
             keyEquivalent: "n"
         )
@@ -205,7 +205,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         // ---- 编辑面板 ----
         for (index, panel) in panelManager.panels.enumerated() {
             let panelItem = NSMenuItem(
-                title: "编辑面板 \(index + 1)",
+                title: Txt.str("编辑面板 \(index + 1)"),
                 action: #selector(menuTogglePanelVisibility(_:)),
                 keyEquivalent: ""
             )
@@ -222,7 +222,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         let obsidianPath = UserDefaults.standard.string(forKey: "obsidianNotePath") ?? ""
         let hasObsidianPath = obsidianEnabled && !obsidianPath.isEmpty && FileManager.default.fileExists(atPath: obsidianPath)
         let obsidianItem = NSMenuItem(
-            title: "obsidian笔记",
+            title: Txt.str("obsidian笔记"),
             action: #selector(menuOpenObsidianNote),
             keyEquivalent: ""
         )
@@ -234,7 +234,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
         // ---- 偏好设置 ----
         let prefsItem = NSMenuItem(
-            title: "偏好设置...",
+            title: Txt.str("偏好设置..."),
             action: #selector(menuOpenPreferences),
             keyEquivalent: ""
         )
@@ -243,7 +243,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
         // ---- 颜色主题 ----
         let themeItem = NSMenuItem(
-            title: "颜色主题",
+            title: Txt.str("颜色主题"),
             action: nil,
             keyEquivalent: ""
         )
@@ -266,7 +266,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         // ---- 窗口浮在最前 ----
         let alwaysOnTop = UserDefaults.standard.bool(forKey: "alwaysOnTop")
         let topItem = NSMenuItem(
-            title: "窗口浮在最前",
+            title: Txt.str("窗口浮在最前"),
             action: #selector(menuToggleAlwaysOnTop),
             keyEquivalent: ""
         )
@@ -278,7 +278,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
 
         // ---- 退出 ----
         let quitItem = NSMenuItem(
-            title: "退出",
+            title: Txt.str("退出"),
             action: #selector(menuQuit),
             keyEquivalent: "q"
         )
@@ -477,15 +477,10 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
     private func updateStatusBarIcon(visible: Bool) {
         guard let button = statusItem.button else { return }
 
-        let transition = CATransition()
-        transition.type = .fade
-        transition.duration = 0.25
-        button.layer?.add(transition, forKey: "iconTransition")
-
         let iconName: String
         let useTemplate: Bool
         if visible {
-            var custom = UserDefaults.standard.string(forKey: "customMenuBarIcon") ?? "tmp"
+            var custom = UserDefaults.standard.string(forKey: "customMenuBarIcon") ?? "random"
             if custom == "random" {
                 custom = Self.resolveRandomIcon()
             }
@@ -495,12 +490,69 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
             iconName = "icon/tmp"
             useTemplate = true
         }
+
+        // Play bubble burst animation on icon switch.
+        playIconSwitchAnimation(on: button)
+
         button.image = useTemplate
             ? Self.loadTemplateImage(iconName)
             : (Self.loadColoredImage(iconName) ?? Self.loadTemplateImage("icon/tmp"))
 
         // Reposition the drop zone when the icon changes (the button frame may shift).
         positionDropZone()
+    }
+
+    /// Play a bubble-burst particle animation on the status bar button.
+    private func playIconSwitchAnimation(on button: NSStatusBarButton) {
+        guard let layer = button.layer else { return }
+
+        // Remove any previous emitter.
+        layer.sublayers?.removeAll { $0 is CAEmitterLayer }
+
+        let emitter = CAEmitterLayer()
+        emitter.emitterPosition = CGPoint(x: button.bounds.midX, y: button.bounds.midY)
+        emitter.emitterSize = CGSize(width: 4, height: 4)
+        emitter.emitterShape = .point
+        emitter.renderMode = .additive
+
+        let bubbleImage = makeBubbleImage(size: 4).cgImage(forProposedRect: nil, context: nil, hints: nil)
+
+        let cell = CAEmitterCell()
+        cell.contents = bubbleImage
+        cell.birthRate = 100
+        cell.lifetime = 0.6
+        cell.lifetimeRange = 0.2
+        cell.velocity = 60
+        cell.velocityRange = 40
+        cell.emissionRange = .pi * 2
+        cell.scale = 0.8
+        cell.scaleRange = 0.4
+        cell.scaleSpeed = -1.5
+        cell.alphaSpeed = -2.0
+        cell.color = NSColor.white.cgColor
+        emitter.emitterCells = [cell]
+
+        layer.addSublayer(emitter)
+
+        // Burst: fire once then stop.
+        emitter.birthRate = 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            emitter.birthRate = 0
+        }
+        // Clean up after particles die.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            emitter.removeFromSuperlayer()
+        }
+    }
+
+    /// Generate a small filled-circle image for the emitter cell.
+    private func makeBubbleImage(size: CGFloat) -> NSImage {
+        let image = NSImage(size: NSSize(width: size, height: size))
+        image.lockFocus()
+        NSColor.white.setFill()
+        NSBezierPath(ovalIn: NSRect(x: 0, y: 0, width: size, height: size)).fill()
+        image.unlockFocus()
+        return image
     }
 
     /// Load a template image from the TmpspaceMenuBar resource bundle.
@@ -545,52 +597,101 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         return image
     }
 
-    /// Available custom icons for the menu bar (shown state).
-    /// Each string is the base name (without extension), usable with `loadTemplateImage("icon/\\(name)")`.
-    /// Icon IDs eligible for random selection (excludes tmp and random placeholder).
-    private static let randomIconPool: [String] = [
-        "Botany", "cat music", "chameleon", "coffeepot", "cup", "dog",
-        "dolphin", "juice", "lion", "milk tea", "music", "orange cat",
-        "outdoor", "owl", "penguin", "snake", "T-Rex", "wander", "water",
-        "yawn-1", "yawn", "yellow cat",
+    /// Available custom icons organized by category.
+    /// Each icon ID includes the category prefix (e.g. "普通/cat music") for loading.
+    public static let iconCategories: [(name: String, icons: [String])] = [
+        (Txt.str("普通"), [
+            "普通/cat music",
+            "普通/chameleon",
+            "普通/cup",
+            "普通/dog",
+            "普通/dolphin",
+            "普通/music",
+            "普通/owl",
+            "普通/penguin",
+            "普通/T-Rex",
+        ]),
+        (Txt.str("橙猫"), [
+            "橙猫/Frame 33",
+            "橙猫/Frame 34",
+            "橙猫/Frame 35",
+            "橙猫/Frame 36",
+            "橙猫/Frame 37",
+            "橙猫/Frame 38",
+            "橙猫/Frame 39",
+            "橙猫/Frame 40",
+            "橙猫/Frame 41",
+            "橙猫/Frame 42",
+            "橙猫/orange cat",
+        ]),
+        (Txt.str("黑猫"), [
+            "黑猫/Frame 59",
+            "黑猫/Frame 60",
+            "黑猫/Frame 61",
+            "黑猫/Frame 62",
+            "黑猫/Frame 63",
+            "黑猫/Frame 64",
+            "黑猫/Frame 65",
+            "黑猫/Frame 66",
+            "黑猫/Frame 67",
+            "黑猫/Frame 68",
+        ]),
+        (Txt.str("黄猫"), [
+            "黄猫/Frame 43",
+            "黄猫/Frame 44",
+            "黄猫/Frame 45",
+            "黄猫/Frame 46",
+            "黄猫/Frame 47",
+            "黄猫/Frame 48",
+            "黄猫/Frame 49",
+            "黄猫/Frame 50",
+            "黄猫/Frame 51",
+            "黄猫/Frame 52",
+            "黄猫/Frame 53",
+            "黄猫/Frame 54",
+            "黄猫/Frame 57",
+        ]),
+        (Txt.str("咖啡"), [
+            "咖啡/Frame 20",
+            "咖啡/Frame 21",
+            "咖啡/Frame 22",
+            "咖啡/Frame 23",
+            "咖啡/Frame 24",
+            "咖啡/Frame 25",
+            "咖啡/Frame 26",
+            "咖啡/Frame 27",
+            "咖啡/Frame 28",
+            "咖啡/Frame 29",
+            "咖啡/Frame 30",
+            "咖啡/Frame 31",
+            "咖啡/Frame 32",
+        ]),
+        (Txt.str("稀有"), [
+            "稀有/Botany",
+            "稀有/juice",
+            "稀有/lion",
+            "稀有/milk tea",
+            "稀有/outdoor",
+            "稀有/snake",
+            "稀有/wander",
+            "稀有/yawn-1",
+            "稀有/yawn",
+            "稀有/yellow cat",
+        ]),
     ]
+
+    /// All custom icon IDs flattened for random selection.
+    private static let randomIconPool: [String] = iconCategories.flatMap(\.icons)
 
     /// Resolve a "random" selection to a concrete icon ID.
     private static func resolveRandomIcon() -> String {
         randomIconPool.randomElement() ?? "tmp"
     }
 
-    public static let availableIcons: [(id: String, label: String)] = [
-        ("tmp",            "默认"),
-        ("random",         "随机"),
-        ("Botany",         "植物"),
-        ("cat music",      "听歌猫"),
-        ("chameleon",      "变色龙"),
-        ("coffeepot",      "咖啡壶"),
-        ("cup",            "杯子"),
-        ("dog",            "狗"),
-        ("dolphin",        "海豚"),
-        ("juice",          "果汁"),
-        ("lion",           "狮子"),
-        ("milk tea",       "奶茶"),
-        ("music",          "音乐"),
-        ("orange cat",     "橘猫"),
-        ("outdoor",        "户外"),
-        ("owl",            "猫头鹰"),
-        ("penguin",        "企鹅"),
-        ("snake",          "蛇"),
-        ("T-Rex",          "霸王龙"),
-        ("wander",         "漫游"),
-        ("water",          "水"),
-        ("yawn-1",         "打哈欠 1"),
-        ("yawn",           "打哈欠"),
-        ("yellow cat",     "黄猫"),
-    ]
-
     /// Load an icon image for preview (non-template, shows original colors).
-    /// Falls back to template loading if the icon file doesn't exist.
+    /// The `name` should include the full path under the icon directory,
+    /// e.g. "icon/普通/cat music".
     public static func loadPreviewImage(_ name: String) -> NSImage? {
-        // Return the template image at a slightly larger size for preview.
         guard let image = loadTemplateImage(name) else { return nil }
         let copy = image.copy() as! NSImage
         copy.isTemplate = false

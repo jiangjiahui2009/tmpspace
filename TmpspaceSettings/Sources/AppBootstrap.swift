@@ -162,7 +162,7 @@ final class AppBootstrap: NSObject {
         let settingsView = SettingsView()
         let hosting = NSHostingController(rootView: settingsView)
         let window = NSWindow(contentViewController: hosting)
-        window.title = "Tmpspace 偏好设置"
+        window.title = Txt.str("Tmpspace 偏好设置")
         window.styleMask = [.titled, .closable, .miniaturizable]
         window.isReleasedWhenClosed = false
         // Set a fixed content size and position the window at the top

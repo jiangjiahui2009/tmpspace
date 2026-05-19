@@ -575,7 +575,7 @@ final class EditorBridge: NSObject, WKScriptMessageHandler {
     var overlay = document.createElement('div');
     overlay.id = '__ts_drop_overlay';
     var label = document.createElement('div');
-    label.textContent = '松开以存入临时空间';
+    label.textContent = '\(Txt.str("松开以存入临时空间"))';
     label.style.cssText = [
         'font-family:-apple-system,"SF Pro Text",sans-serif',
         'font-size:16px',

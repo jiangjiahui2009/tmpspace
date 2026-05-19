@@ -451,8 +451,8 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             editorLog("ERROR: Missing CoreEditor dist/index.html at path: \(indexPath)")
             let alert = NSAlert()
             alert.alertStyle = .critical
-            alert.messageText = "编辑器加载失败"
-            alert.informativeText = "找不到 CoreEditor dist/index.html。\n\n路径: \(indexPath)"
+            alert.messageText = Txt.str("编辑器加载失败")
+            alert.informativeText = Txt.str("找不到 CoreEditor dist/index.html。\n\n路径: \(indexPath)")
             alert.runModal()
             return
         }

@@ -65,9 +65,9 @@ public final class FormatToolbarView: NSView {
 
         // Add the format buttons.
         let buttons: [(title: String, command: EditorCommand, toolTip: String)] = [
-            ("无序列表", .unorderedList, "Toggle bullet list"),
-            ("有序列表", .orderedList, "Toggle numbered list"),
-            ("待办事项", .taskList, "Toggle task list"),
+            (Txt.str("无序列表"), .unorderedList, "Toggle bullet list"),
+            (Txt.str("有序列表"), .orderedList, "Toggle numbered list"),
+            (Txt.str("待办事项"), .taskList, "Toggle task list"),
         ]
 
         for item in buttons {

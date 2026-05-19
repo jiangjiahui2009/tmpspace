@@ -1,6 +1,6 @@
 # tmpspace
 
-macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。当前基线 v1.4。
+macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。当前基线 v1.6。
 
 ## 模块架构
 
@@ -36,6 +36,15 @@ swift build
 - **obsidian 笔记**：偏好配置 .md 路径后，右键菜单「obsidian笔记」打开独立编辑面板（不占用5个常规面板名额）。面板关闭保留编辑状态，偏好关闭开关或清空路径自动关闭面板。工具栏显示文件名。
   - 追踪：`MenuBarController.obsidianPanelController`（独立于 `PanelManager.panels`）
   - 偏好 key：`obsidianNoteEnabled`（Bool 开关）、`obsidianNotePath`（String 路径）
+
+## v1.5 新增
+
+- **菜单栏图标动画**：显示/隐藏切换时白色粒子爆发效果，`birthRate=100`。
+- **图标分类**：自定义图标按 6 个分类展示（普通/橙猫/黑猫/黄猫/咖啡/稀有），默认图标改为随机。
+
+## v1.6 新增
+
+- **i18n 国际化**：根据系统语言自动切换中文/英文。使用 `String(localized:)` + `.xcstrings`。辅助方法 `Txt.str()` / `Txt.text()` 在 `TmpspaceCore/Sources/Txt.swift`，翻译在 `TmpspaceCore/Sources/Resources/Localizable.xcstrings`。
 
 ## 已知坑点
 

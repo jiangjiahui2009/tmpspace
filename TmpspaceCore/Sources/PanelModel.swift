@@ -20,7 +20,7 @@ public struct PanelModel: Identifiable, Codable, Equatable, Sendable {
     public init(
         id: UUID = UUID(),
         content: String = "",
-        title: String = "未命名",
+        title: String = Txt.str("未命名"),
         positionX: CGFloat = -1,
         positionY: CGFloat = -1,
         width: CGFloat = Constants.defaultPanelWidth,

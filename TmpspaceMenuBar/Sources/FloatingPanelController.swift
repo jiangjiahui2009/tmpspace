@@ -365,7 +365,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         // --- Miniaturize (hide) button ---
         let miniaturizeBtn = makeToolbarButton(
             symbolName: "minus",
-            tooltip: "隐藏面板",
+            tooltip: Txt.str("隐藏面板"),
             action: #selector(miniaturizePanel)
         )
         bar.addSubview(miniaturizeBtn)
@@ -373,7 +373,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         // --- File Box toggle button ---
         let fileBoxBtn = makeToolbarButton(
             symbolName: "cube",
-            tooltip: "文件暂存",
+            tooltip: Txt.str("文件暂存"),
             action: #selector(toggleFileBox)
         )
         bar.addSubview(fileBoxBtn)
@@ -381,7 +381,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         // --- Format button (right side, next to more) ---
         let formatBtn = makeToolbarButton(
             symbolName: "checklist",
-            tooltip: "格式化",
+            tooltip: Txt.str("格式化"),
             action: #selector(formatTapped)
         )
         bar.addSubview(formatBtn)
@@ -398,7 +398,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         // --- More button (right-aligned, shows popup menu on click) ---
         let moreBtn = makeToolbarButton(
             symbolName: "ellipsis.circle",
-            tooltip: "更多操作",
+            tooltip: Txt.str("更多操作"),
             action: #selector(moreButtonClicked(_:))
         )
         bar.addSubview(moreBtn)
@@ -506,10 +506,10 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
     // MARK: - More menu
 
     private func buildMoreMenu() -> NSMenu {
-        let menu = NSMenu(title: "更多操作")
+        let menu = NSMenu(title: Txt.str("更多操作"))
 
         let saveItem = NSMenuItem(
-            title: "保存为文档",
+            title: Txt.str("保存为文档"),
             action: #selector(saveAsDocumentTapped),
             keyEquivalent: ""
         )
@@ -517,7 +517,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         menu.addItem(saveItem)
 
         let openTempSpaceItem = NSMenuItem(
-            title: "打开临时空间",
+            title: Txt.str("打开临时空间"),
             action: #selector(openTempSpaceTapped),
             keyEquivalent: ""
         )
@@ -527,7 +527,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         menu.addItem(.separator())
 
         let prefsItem = NSMenuItem(
-            title: "偏好设置",
+            title: Txt.str("偏好设置"),
             action: #selector(openPreferencesTapped),
             keyEquivalent: ""
         )
@@ -537,7 +537,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         menu.addItem(.separator())
 
         let clearItem = NSMenuItem(
-            title: "清空内容",
+            title: Txt.str("清空内容"),
             action: #selector(clearTapped),
             keyEquivalent: ""
         )
@@ -545,7 +545,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         menu.addItem(clearItem)
 
         let deleteItem = NSMenuItem(
-            title: "删除",
+            title: Txt.str("删除"),
             action: #selector(deletePanelTapped),
             keyEquivalent: ""
         )
@@ -638,12 +638,12 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
     }
 
     @objc private func formatTapped(_ sender: NSButton) {
-        let menu = NSMenu(title: "格式化")
-        let unorderedItem = NSMenuItem(title: "无序列表", action: #selector(applyUnorderedList), keyEquivalent: "")
+        let menu = NSMenu(title: Txt.str("格式化"))
+        let unorderedItem = NSMenuItem(title: Txt.str("无序列表"), action: #selector(applyUnorderedList), keyEquivalent: "")
         unorderedItem.target = self
-        let orderedItem = NSMenuItem(title: "有序列表", action: #selector(applyOrderedList), keyEquivalent: "")
+        let orderedItem = NSMenuItem(title: Txt.str("有序列表"), action: #selector(applyOrderedList), keyEquivalent: "")
         orderedItem.target = self
-        let taskItem = NSMenuItem(title: "待办事项", action: #selector(applyTaskList), keyEquivalent: "")
+        let taskItem = NSMenuItem(title: Txt.str("待办事项"), action: #selector(applyTaskList), keyEquivalent: "")
         taskItem.target = self
         menu.addItem(unorderedItem)
         menu.addItem(orderedItem)
@@ -689,13 +689,13 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
     /// File format options for the save panel accessory view.
     private static let saveFormats: [(title: String, ext: String, utType: UTType)] = [
         ("Markdown",     "md",       .plainText),
-        ("纯文本",       "txt",      .plainText),
+        (Txt.str("纯文本"),       "txt",      .plainText),
     ]
 
     private func saveContentAsFile(_ content: String) {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.plainText]
-        savePanel.nameFieldStringValue = "未命名.md"
+        savePanel.nameFieldStringValue = Txt.str("未命名.md")
         savePanel.accessoryView = makeSaveAccessoryView(for: savePanel)
         guard let window else { return }
         savePanel.beginSheetModal(for: window) { [weak self] response in
@@ -722,7 +722,7 @@ final class FloatingPanelController: NSWindowController, NSWindowDelegate {
         // system fields above (Save As text field / Where popup).
         let labelWidth: CGFloat = 72
 
-        let formatLabel = NSTextField(labelWithString: "文件格式：")
+        let formatLabel = NSTextField(labelWithString: Txt.str("文件格式："))
         formatLabel.font = .systemFont(ofSize: NSFont.systemFontSize(for: .regular))
         formatLabel.alignment = .right
         formatLabel.translatesAutoresizingMaskIntoConstraints = false

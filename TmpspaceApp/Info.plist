@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>zh_CN</string>
+	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>Tmpspace</string>
 	<key>CFBundleIconFile</key>
@@ -13,15 +13,16 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>zh_CN</string>
+		<string>en</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>tmpspace</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4</string>
+	<string>1.6</string>
 	<key>CFBundleVersion</key>
-	<string>1.4</string>
+	<string>1.6</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>LSBackgroundOnly</key>

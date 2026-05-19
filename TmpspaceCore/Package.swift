@@ -16,7 +16,8 @@ let package = Package(
     targets: [
         .target(
             name: "TmpspaceCore",
-            path: "Sources"
+            path: "Sources",
+            resources: [.process("Resources")]
         ),
     ]
 )

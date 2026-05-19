@@ -87,7 +87,7 @@ public actor PanelStorage: PanelStorageProtocol {
             let stub = PanelModel(
                 id: id,
                 content: content,
-                title: "未命名",
+                title: Txt.str("未命名"),
                 lastModifiedAt: Date()
             )
             panelCache[id] = stub

@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import TmpspaceCore
 
 /// A collapsible horizontal file strip that accepts drag-and-drop
 /// and displays file icons.
@@ -87,13 +88,13 @@ final class FileBoxView: NSView {
 
         // Folder button — top-right corner, opens the file box folder in Finder.
         let folderBtn = NSButton(
-            image: NSImage(systemSymbolName: "folder", accessibilityDescription: "打开临时空间文件夹")!,
+            image: NSImage(systemSymbolName: "folder", accessibilityDescription: Txt.str("打开临时空间文件夹"))!,
             target: self,
             action: #selector(openFolderTapped)
         )
         folderBtn.bezelStyle = .smallSquare
         folderBtn.isBordered = false
-        folderBtn.toolTip = "打开临时空间文件夹"
+        folderBtn.toolTip = Txt.str("打开临时空间文件夹")
         folderBtn.translatesAutoresizingMaskIntoConstraints = false
         addSubview(folderBtn)
 
@@ -205,7 +206,7 @@ final class FileBoxView: NSView {
     private func showContextMenu(for fileURL: URL, at point: NSPoint) {
         let menu = NSMenu(title: "")
         let deleteItem = NSMenuItem(
-            title: "删除",
+            title: Txt.str("删除"),
             action: #selector(deleteFileFromMenu(_:)),
             keyEquivalent: ""
         )

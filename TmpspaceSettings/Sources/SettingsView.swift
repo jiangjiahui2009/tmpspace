@@ -45,7 +45,7 @@ public struct SettingsView: View {
     @AppStorage("editorLineHeight") private var editorLineHeight = Double(1.6)
     @AppStorage("editorTaskToggleSound") private var editorTaskToggleSound = true
     @AppStorage("editorReduceToolbarTransparency") private var editorReduceToolbarTransparency = true
-    @AppStorage("customMenuBarIcon") private var customMenuBarIcon = "tmp"
+    @AppStorage("customMenuBarIcon") private var customMenuBarIcon = "random"
 
     // MARK: - Quick Copy shortcut preferences (disabled)
     //
@@ -60,17 +60,17 @@ public struct SettingsView: View {
         TabView {
             editorTab
                 .tabItem {
-                    Label("编辑器", systemImage: "textformat.alt")
+                    Label(Txt.str("编辑器"), systemImage: "textformat.alt")
                 }
 
             generalTab
                 .tabItem {
-                    Label("通用", systemImage: "gearshape")
+                    Label(Txt.str("通用"), systemImage: "gearshape")
                 }
 
             personalizationTab
                 .tabItem {
-                    Label("个性化", systemImage: "paintpalette")
+                    Label(Txt.str("个性化"), systemImage: "paintpalette")
                 }
         }
         .frame(minWidth: 460, minHeight: 320)
@@ -87,7 +87,7 @@ public struct SettingsView: View {
     private var generalTab: some View {
         Form {
             Section {
-                Toggle("窗口始终浮在最前", isOn: $alwaysOnTop)
+                Toggle(Txt.str("窗口始终浮在最前"), isOn: $alwaysOnTop)
                     .onChange(of: alwaysOnTop) { _, _ in
                         NotificationCenter.default.post(
                             name: .tmpspaceAlwaysOnTopDidChange,
@@ -95,7 +95,7 @@ public struct SettingsView: View {
                         )
                     }
             } footer: {
-                Text("开启后，tmpspace编辑面板将始终悬浮在其他窗口之上。")
+                Txt.text("开启后，tmpspace编辑面板将始终悬浮在其他窗口之上。")
             }
 
             Section {
@@ -107,14 +107,14 @@ public struct SettingsView: View {
                             Image(systemName: "record.circle")
                                 .foregroundStyle(isRecordingShortcut ? .red : .secondary)
 
-                            Text(isRecordingShortcut ? "按下组合键…" : shortcutDisplayString)
+                            Text(isRecordingShortcut ? Txt.str("按下组合键…") : shortcutDisplayString)
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundStyle(isRecordingShortcut ? .secondary : .primary)
 
                             Spacer()
 
                             if isRecordingShortcut {
-                                Text("(Esc 取消)")
+                                Text(Txt.str("(Esc 取消)"))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -132,7 +132,7 @@ public struct SettingsView: View {
                     .disabled(isRecordingShortcut)
 
                     HStack {
-                        Button("恢复默认") {
+                        Button(Txt.str("恢复默认")) {
                             resetShortcutToDefault()
                         }
                         .controlSize(.small)
@@ -141,9 +141,9 @@ public struct SettingsView: View {
                     }
                 }
             } header: {
-                Text("唤起快捷键")
+                Txt.text("唤起快捷键")
             } footer: {
-                Text("点击上方区域，然后按下你想要的组合键完成录制。")
+                Txt.text("点击上方区域，然后按下你想要的组合键完成录制。")
             }
 
             Section {
@@ -153,7 +153,7 @@ public struct SettingsView: View {
                             .font(.system(.body, design: .monospaced))
                             .foregroundStyle(.secondary)
                             .frame(minWidth: 52, alignment: .leading)
-                        Text("快速移动文件")
+                        Txt.text("快速移动文件")
                             .foregroundStyle(.secondary)
                     }
                     Divider()
@@ -162,59 +162,59 @@ public struct SettingsView: View {
                             .font(.system(.body, design: .monospaced))
                             .foregroundStyle(.secondary)
                             .frame(minWidth: 52, alignment: .leading)
-                        Text("转为待办事项")
+                        Txt.text("转为待办事项")
                             .foregroundStyle(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
             } header: {
-                Text("功能快捷键")
+                Txt.text("功能快捷键")
             } footer: {
-                Text("以下快捷键为系统内置，不可修改。Cmd+; 将 Finder 选中的文件移动到临时空间；Cmd+L 将选中的文本转换为待办事项列表。")
+                Txt.text("以下快捷键为系统内置，不可修改。Cmd+; 将 Finder 选中的文件移动到临时空间；Cmd+L 将选中的文本转换为待办事项列表。")
             }
 
             Section {
                 HStack {
-                    Text("文件夹")
+                    Txt.text("文件夹")
                         .foregroundStyle(.secondary)
                     Text(fileBoxDisplayPath)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
 
-                Toggle("菜单栏拖拽存入", isOn: $menuBarDropZoneEnabled)
-                    .help("编辑器隐藏时，拖拽文件到菜单栏图标即可存入临时空间。")
+                Toggle(Txt.str("菜单栏拖拽存入"), isOn: $menuBarDropZoneEnabled)
+                    .help(Txt.str("编辑器隐藏时，拖拽文件到菜单栏图标即可存入临时空间。"))
 
-                Picker("拖拽模式", selection: $fileBoxMode) {
-                    Text("复制").tag("copy")
-                        .help("拖入和拖出均为复制，原文件保留。")
-                    Text("移动").tag("move")
-                        .help("拖入和拖出均为移动，原文件不保留。")
+                Picker(Txt.str("拖拽模式"), selection: $fileBoxMode) {
+                    Txt.text("复制").tag("copy")
+                        .help(Txt.str("拖入和拖出均为复制，原文件保留。"))
+                    Txt.text("移动").tag("move")
+                        .help(Txt.str("拖入和拖出均为移动，原文件不保留。"))
                 }
                 .pickerStyle(.segmented)
                 .frame(maxWidth: 200)
 
                 HStack {
-                    Button("打开文件夹") {
+                    Button(Txt.str("打开文件夹")) {
                         NSWorkspace.shared.open(fileBoxFolderURL)
                     }
 
-                    Button("更改...") {
+                    Button(Txt.str("更改...")) {
                         chooseFileBoxFolder()
                     }
                 }
             } header: {
-                Text("文件暂存")
+                Txt.text("文件暂存")
             } footer: {
-                Text("拖拽模式决定文件是复制还是移动到目标位置。")
+                Txt.text("拖拽模式决定文件是复制还是移动到目标位置。")
             }
 
             Section {
-                Toggle("启用obsidian笔记", isOn: $obsidianNoteEnabled)
+                Toggle(Txt.str("启用obsidian笔记"), isOn: $obsidianNoteEnabled)
 
                 if obsidianNoteEnabled {
                     HStack {
-                        Text("笔记路径")
+                        Txt.text("笔记路径")
                             .foregroundStyle(.secondary)
                         Text(obsidianNoteDisplayPath)
                             .lineLimit(1)
@@ -222,23 +222,23 @@ public struct SettingsView: View {
                             .foregroundStyle(obsidianNotePath.isEmpty ? .tertiary : .primary)
                     }
 
-                    Button("选择...") {
+                    Button(Txt.str("选择...")) {
                         chooseObsidianNoteFile()
                     }
                 }
             } header: {
-                Text("obsidian笔记")
+                Txt.text("obsidian笔记")
             } footer: {
-                Text("选择一个 .md 文件笔记，配置后可被快捷打开与编辑。")
+                Txt.text("选择一个 .md 文件笔记，配置后可被快捷打开与编辑。")
             }
 
             Section {
-                Toggle("开机自启", isOn: $launchAtLogin)
+                Toggle(Txt.str("开机自启"), isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, newValue in
                         configureLaunchAtLogin(enabled: newValue)
                     }
             } footer: {
-                Text("开启后，tmpspace将在登录时自动启动并在菜单栏中运行。")
+                Txt.text("开启后，tmpspace将在登录时自动启动并在菜单栏中运行。")
             }
 
         }
@@ -249,55 +249,66 @@ public struct SettingsView: View {
 
     /// Grid layout for icon picker.
     private let iconGridColumns: [GridItem] = [
-        .init(.adaptive(minimum: 64, maximum: 72), spacing: 12)
+        .init(.adaptive(minimum: 56, maximum: 64), spacing: 8)
     ]
 
     @ViewBuilder
     private var personalizationTab: some View {
         Form {
             Section {
-                LazyVGrid(columns: iconGridColumns, spacing: 12) {
-                    ForEach(MenuBarController.availableIcons, id: \.id) { icon in
-                        iconCell(for: icon)
-                    }
+                LazyVGrid(columns: iconGridColumns, spacing: 10) {
+                    specialIconCell(id: "tmp", label: Txt.str("默认"))
+                    specialIconCell(id: "random", label: Txt.str("随机"), systemImage: "dice")
                 }
-                .padding(.vertical, 8)
+                .padding(.vertical, 6)
             } header: {
-                Text("开箱图标")
+                Txt.text("开箱图标")
             } footer: {
-                Text("选择编辑器显示时菜单栏的图标。隐藏状态下始终使用默认图标。")
+                Txt.text("选择编辑器显示时菜单栏的图标。隐藏状态下始终使用默认图标。")
+            }
+
+            ForEach(MenuBarController.iconCategories, id: \.name) { category in
+                Section {
+                    LazyVGrid(columns: iconGridColumns, spacing: 8) {
+                        ForEach(category.icons, id: \.self) { iconId in
+                            categoryIconCell(for: iconId)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                } header: {
+                    Text(category.name)
+                }
             }
         }
         .formStyle(.grouped)
     }
 
+    /// Special icon cell with label (for default and random).
     @ViewBuilder
-    private func iconCell(for icon: (id: String, label: String)) -> some View {
-        let isSelected = customMenuBarIcon == icon.id
+    private func specialIconCell(id: String, label: String, systemImage: String? = nil) -> some View {
+        let isSelected = customMenuBarIcon == id
 
         VStack(spacing: 4) {
             Group {
-                if icon.id == "random" {
-                    Image(systemName: "dice")
-                        .font(.system(size: 28))
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 26))
                         .foregroundStyle(isSelected ? .blue : .secondary)
-                } else if let image = MenuBarController.loadPreviewImage("icon/\(icon.id)") {
+                } else if let image = MenuBarController.loadPreviewImage("icon/\(id)") {
                     Image(nsImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 32, height: 32)
                 } else {
                     Image(systemName: "questionmark.square")
-                        .font(.system(size: 28))
+                        .font(.system(size: 26))
                         .foregroundStyle(.secondary)
                 }
             }
-            .frame(width: 48, height: 48)
+            .frame(width: 44, height: 44)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected
-                        ? Color.accentColor.opacity(0.15)
-                        : Color.clear)
+                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
@@ -307,14 +318,52 @@ public struct SettingsView: View {
                     )
             )
 
-            Text(icon.label)
+            Text(label)
                 .font(.caption2)
                 .foregroundStyle(isSelected ? .primary : .secondary)
-                .lineLimit(1)
         }
-        .frame(width: 72)
+        .frame(width: 64)
         .onTapGesture {
-            customMenuBarIcon = icon.id
+            customMenuBarIcon = id
+            NotificationCenter.default.post(
+                name: .tmpspaceMenuBarIconDidChange,
+                object: nil
+            )
+        }
+    }
+
+    /// Category icon cell without label (icon only).
+    @ViewBuilder
+    private func categoryIconCell(for iconId: String) -> some View {
+        let isSelected = customMenuBarIcon == iconId
+
+        Group {
+            if let image = MenuBarController.loadPreviewImage("icon/\(iconId)") {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 32, height: 32)
+            } else {
+                Image(systemName: "questionmark.square")
+                    .font(.system(size: 26))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 44, height: 44)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                    isSelected ? Color.accentColor : Color.secondary.opacity(0.3),
+                    lineWidth: isSelected ? 2 : 1
+                )
+        )
+        .frame(width: 64)
+        .onTapGesture {
+            customMenuBarIcon = iconId
             NotificationCenter.default.post(
                 name: .tmpspaceMenuBarIconDidChange,
                 object: nil
@@ -338,7 +387,7 @@ public struct SettingsView: View {
 
     /// Display-friendly path for the obsidian note.
     private var obsidianNoteDisplayPath: String {
-        if obsidianNotePath.isEmpty { return "未配置" }
+        if obsidianNotePath.isEmpty { return Txt.str("未配置") }
         return (obsidianNotePath as NSString).abbreviatingWithTildeInPath
     }
 
@@ -349,8 +398,8 @@ public struct SettingsView: View {
         panel.canChooseFiles = true
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.plainText]
-        panel.message = "选择一个 Markdown 文件作为常驻笔记"
-        panel.prompt = "选择"
+        panel.message = Txt.str("选择一个 Markdown 文件作为常驻笔记")
+        panel.prompt = Txt.str("选择")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         obsidianNotePath = url.path
     }
@@ -361,8 +410,8 @@ public struct SettingsView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.message = "选择文件盒子的存储文件夹"
-        panel.prompt = "选择"
+        panel.message = Txt.str("选择文件盒子的存储文件夹")
+        panel.prompt = Txt.str("选择")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         FileBoxManager.saveBookmark(for: url)
         fileBoxFolderPath = url.path
@@ -438,28 +487,28 @@ public struct SettingsView: View {
 
     /// Syntax highlighting theme names and their display labels.
     private static let availableThemes: [(id: String, label: String)] = [
-        ("system",               "跟随系统"),
+        ("system",               Txt.str("跟随系统")),
         ("github-light",         "GitHub Light"),
         ("github-dark",          "GitHub Dark"),
         ("xcode-light",          "Xcode Light"),
         ("xcode-dark",           "Xcode Dark"),
         ("dracula",              "Dracula"),
         ("cobalt",               "Cobalt"),
-        ("winter-is-coming-light", "冬日渐近·浅"),
-        ("winter-is-coming-dark",  "冬日渐近·深"),
-        ("minimal-light",        "极简·浅"),
-        ("minimal-dark",         "极简·深"),
+        ("winter-is-coming-light", Txt.str("冬日渐近·浅")),
+        ("winter-is-coming-dark",  Txt.str("冬日渐近·深")),
+        ("minimal-light",        Txt.str("极简·浅")),
+        ("minimal-dark",         Txt.str("极简·深")),
         ("synthwave84",          "Synthwave '84"),
-        ("night-owl",            "夜猫子"),
-        ("rose-pine-dawn",       "松木玫瑰·晨"),
-        ("rose-pine",            "松木玫瑰·夜"),
+        ("night-owl",            Txt.str("夜猫子")),
+        ("rose-pine-dawn",       Txt.str("松木玫瑰·晨")),
+        ("rose-pine",            Txt.str("松木玫瑰·夜")),
         ("solarized-light",      "Solarized Light"),
         ("solarized-dark",       "Solarized Dark"),
     ]
 
     /// Editor font family choices.
     private static let fontFamilies: [(id: String, label: String)] = [
-        ("system-ui", "系统字体"),
+        ("system-ui", Txt.str("系统字体")),
         ("SF Mono",   "SF Mono"),
         ("Menlo",      "Menlo"),
     ]
@@ -468,7 +517,7 @@ public struct SettingsView: View {
     private var editorTab: some View {
         Form {
             Section {
-                Picker("语法高亮主题", selection: $editorTheme) {
+                Picker(Txt.str("语法高亮主题"), selection: $editorTheme) {
                     ForEach(Self.availableThemes, id: \.id) { theme in
                         Text(theme.label).tag(theme.id)
                     }
@@ -476,11 +525,11 @@ public struct SettingsView: View {
                 .pickerStyle(.menu)
                 .onChange(of: editorTheme) { _, _ in persistEditorDisplaySettings() }
             } header: {
-                Text("颜色主题")
+                Txt.text("颜色主题")
             }
 
             Section {
-                Picker("字体", selection: $editorFontFamily) {
+                Picker(Txt.str("字体"), selection: $editorFontFamily) {
                     ForEach(Self.fontFamilies, id: \.id) { item in
                         Text(item.label).tag(item.id)
                     }
@@ -489,56 +538,56 @@ public struct SettingsView: View {
 
                 Stepper(value: $editorFontSize, in: 10...24, step: 1) {
                     HStack {
-                        Text("字号:")
+                        Txt.text("字号:")
                         Text("\(Int(editorFontSize)) pt")
                             .foregroundStyle(.secondary)
                     }
                 }
                 .onChange(of: editorFontSize) { _, _ in persistEditorDisplaySettings() }
             } header: {
-                Text("字体与字号")
+                Txt.text("字体与字号")
             } footer: {
-                Text("编辑器的显示字体和大小（10–24 点）。")
+                Txt.text("编辑器的显示字体和大小（10–24 点）。")
             }
 
             Section {
-                Toggle("显示行号", isOn: $editorShowLineNumbers)
+                Toggle(Txt.str("显示行号"), isOn: $editorShowLineNumbers)
                     .onChange(of: editorShowLineNumbers) { _, _ in persistEditorDisplaySettings() }
 
-                Toggle("显示当前行指示器", isOn: $editorShowActiveLineIndicator)
+                Toggle(Txt.str("显示当前行指示器"), isOn: $editorShowActiveLineIndicator)
                     .onChange(of: editorShowActiveLineIndicator) { _, _ in persistEditorDisplaySettings() }
             } header: {
-                Text("辅助显示")
+                Txt.text("辅助显示")
             }
 
             Section {
-                Picker("行高", selection: $editorLineHeight) {
-                    Text("紧凑").tag(1.4)
-                    Text("正常").tag(1.6)
-                    Text("宽松").tag(1.8)
+                Picker(Txt.str("行高"), selection: $editorLineHeight) {
+                    Txt.text("紧凑").tag(1.4)
+                    Txt.text("正常").tag(1.6)
+                    Txt.text("宽松").tag(1.8)
                 }
                 .pickerStyle(.segmented)
                 .onChange(of: editorLineHeight) { _, _ in persistEditorDisplaySettings() }
             } header: {
-                Text("行间距")
+                Txt.text("行间距")
             }
 
             Section {
-                Toggle("待办事项勾选音效", isOn: $editorTaskToggleSound)
+                Toggle(Txt.str("待办事项勾选音效"), isOn: $editorTaskToggleSound)
                     .onChange(of: editorTaskToggleSound) { _, _ in persistEditorDisplaySettings() }
             } header: {
-                Text("音效")
+                Txt.text("音效")
             } footer: {
-                Text("勾选待办事项时播放提示音。")
+                Txt.text("勾选待办事项时播放提示音。")
             }
 
             Section {
-                Toggle("降低工具栏透明度", isOn: $editorReduceToolbarTransparency)
+                Toggle(Txt.str("降低工具栏透明度"), isOn: $editorReduceToolbarTransparency)
                     .onChange(of: editorReduceToolbarTransparency) { _, _ in persistEditorDisplaySettings() }
             } header: {
-                Text("工具栏外观")
+                Txt.text("工具栏外观")
             } footer: {
-                Text("开启后工具栏使用不透明背景，关闭后使用半透明模糊效果。")
+                Txt.text("开启后工具栏使用不透明背景，关闭后使用半透明模糊效果。")
             }
         }
         .formStyle(.grouped)

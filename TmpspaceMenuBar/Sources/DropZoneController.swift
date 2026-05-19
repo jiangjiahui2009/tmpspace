@@ -302,12 +302,12 @@ private final class DropZoneView: NSView {
     override init(frame frameRect: NSRect) {
         iconView = NSImageView()
         iconView.image = NSImage(systemSymbolName: "tray.and.arrow.up.fill",
-                                  accessibilityDescription: "拖拽存入")
+                                  accessibilityDescription: Txt.str("拖拽存入"))
         iconView.contentTintColor = .secondaryLabelColor
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.isHidden = true
 
-        label = NSTextField(labelWithString: "拖拽存入临时空间")
+        label = NSTextField(labelWithString: Txt.str("拖拽存入临时空间"))
         label.alignment = .center
         label.font = .systemFont(ofSize: 11, weight: .medium)
         label.textColor = .secondaryLabelColor

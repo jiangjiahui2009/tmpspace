@@ -141,10 +141,10 @@ public final class PanelManager: MenuBarManagerProtocol {
         let content = editorProvider?.getContent(for: id) ?? panels.first(where: { $0.id == id })?.content ?? ""
         if !content.isEmpty {
             let alert = NSAlert()
-            alert.messageText = "确认删除"
-            alert.informativeText = "该编辑面板不为空，删除后内容将丢失。确定要删除吗？"
-            alert.addButton(withTitle: "删除")
-            alert.addButton(withTitle: "取消")
+            alert.messageText = Txt.str("确认删除")
+            alert.informativeText = Txt.str("该编辑面板不为空，删除后内容将丢失。确定要删除吗？")
+            alert.addButton(withTitle: Txt.str("删除"))
+            alert.addButton(withTitle: Txt.str("取消"))
             alert.alertStyle = .warning
             let response = alert.runModal()
             guard response == .alertFirstButtonReturn else { return }

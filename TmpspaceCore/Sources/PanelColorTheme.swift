@@ -12,13 +12,13 @@ public enum PanelColorTheme: String, CaseIterable, Codable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .system:     return "跟随系统"
-        case .light:      return "浅色"
-        case .dark:       return "深色"
-        case .warmYellow: return "暖黄"
-        case .coolBlue:   return "冷蓝"
-        case .softGreen:  return "柔绿"
-        case .lavender:   return "淡紫"
+        case .system:     return Txt.str("跟随系统")
+        case .light:      return Txt.str("浅色")
+        case .dark:       return Txt.str("深色")
+        case .warmYellow: return Txt.str("暖黄")
+        case .coolBlue:   return Txt.str("冷蓝")
+        case .softGreen:  return Txt.str("柔绿")
+        case .lavender:   return Txt.str("淡紫")
         }
     }
 
