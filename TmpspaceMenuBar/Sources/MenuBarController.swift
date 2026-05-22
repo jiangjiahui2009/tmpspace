@@ -555,6 +555,16 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         return image
     }
 
+    /// The bundle containing menu bar icon resources.
+    /// In Xcode .app builds icons are in Bundle.main;
+    /// in SPM dev builds they're in Bundle.module (the TmpspaceMenuBar module bundle).
+    private static let resourceBundle: Bundle = {
+        if Bundle.main.path(forResource: "tmp", ofType: "svg", inDirectory: "icon") != nil {
+            return Bundle.main
+        }
+        return Bundle.module
+    }()
+
     /// Load a template image from the TmpspaceMenuBar resource bundle.
     /// Tries PNG first (sharper at small sizes), then falls back to SVG.
     public static func loadTemplateImage(_ name: String) -> NSImage? {
@@ -562,7 +572,7 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         let baseName = (name as NSString).lastPathComponent
 
         for ext in ["png", "svg"] {
-            guard let path = Bundle.module.path(forResource: baseName, ofType: ext, inDirectory: directory) else {
+            guard let path = resourceBundle.path(forResource: baseName, ofType: ext, inDirectory: directory) else {
                 continue
             }
 

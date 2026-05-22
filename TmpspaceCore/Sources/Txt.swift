@@ -4,7 +4,15 @@ import SwiftUI
 /// so the app can switch between Chinese and English based on system locale.
 public enum Txt {
 
-    private static let bundle = Bundle.module
+    /// In Xcode .app archives the main bundle contains all resources;
+    /// in SPM dev builds each module has its own resource bundle (Bundle.module).
+    /// We probe Bundle.main first to avoid the Bundle.module crash in .app builds.
+    private static let bundle: Bundle = {
+        if Bundle.main.url(forResource: "Localizable", withExtension: "xcstrings") != nil {
+            return Bundle.main
+        }
+        return Bundle.module
+    }()
 
     /// Returns a localised `String`.
     ///
