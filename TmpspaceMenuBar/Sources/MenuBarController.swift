@@ -483,6 +483,9 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
             var custom = UserDefaults.standard.string(forKey: "customMenuBarIcon") ?? "random"
             if custom == "random" {
                 custom = Self.resolveRandomIcon()
+            } else if custom.hasPrefix("random:") {
+                let prefix = String(custom.dropFirst("random:".count))
+                custom = Self.resolveRandomIcon(inCategory: prefix)
             }
             iconName = "icon/\(custom)"
             useTemplate = (custom == "tmp")
@@ -693,9 +696,17 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
     /// All custom icon IDs flattened for random selection.
     private static let randomIconPool: [String] = iconCategories.flatMap(\.icons)
 
-    /// Resolve a "random" selection to a concrete icon ID.
+    /// Resolve a "random" selection to a concrete icon ID (all categories).
     private static func resolveRandomIcon() -> String {
         randomIconPool.randomElement() ?? "tmp"
+    }
+
+    /// Resolve a random icon within a specific category (e.g. "橙猫").
+    private static func resolveRandomIcon(inCategory prefix: String) -> String {
+        iconCategories
+            .flatMap(\.icons)
+            .filter { $0.hasPrefix(prefix + "/") }
+            .randomElement() ?? "tmp"
     }
 
     /// Load an icon image for preview (non-template, shows original colors).

@@ -270,6 +270,7 @@ public struct SettingsView: View {
             ForEach(MenuBarController.iconCategories, id: \.name) { category in
                 Section {
                     LazyVGrid(columns: iconGridColumns, spacing: 8) {
+                        categoryRandomCell(for: category)
                         ForEach(category.icons, id: \.self) { iconId in
                             categoryIconCell(for: iconId)
                         }
@@ -325,6 +326,44 @@ public struct SettingsView: View {
         .frame(width: 64)
         .onTapGesture {
             customMenuBarIcon = id
+            NotificationCenter.default.post(
+                name: .tmpspaceMenuBarIconDidChange,
+                object: nil
+            )
+        }
+    }
+
+    /// Random icon cell for a category — picks a random icon from that category.
+    @ViewBuilder
+    private func categoryRandomCell(for category: (name: String, icons: [String])) -> some View {
+        let prefix = category.icons.first?.components(separatedBy: "/").first ?? ""
+        let randomId = "random:\(prefix)"
+        let isSelected = customMenuBarIcon == randomId
+
+        VStack(spacing: 4) {
+            Image(systemName: "dice")
+                .font(.system(size: 26))
+                .foregroundStyle(isSelected ? .blue : .secondary)
+                .frame(width: 44, height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(
+                            isSelected ? Color.accentColor : Color.secondary.opacity(0.3),
+                            lineWidth: isSelected ? 2 : 1
+                        )
+                )
+
+            Text(Txt.str("随机"))
+                .font(.caption2)
+                .foregroundStyle(isSelected ? .primary : .secondary)
+        }
+        .frame(width: 64)
+        .onTapGesture {
+            customMenuBarIcon = randomId
             NotificationCenter.default.post(
                 name: .tmpspaceMenuBarIconDidChange,
                 object: nil
