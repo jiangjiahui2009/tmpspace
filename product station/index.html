@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>临时空间 Tmpspace — 菜单栏常驻的 Markdown 编辑面板</title>
-  <link rel="icon" type="image/png" href="app-icon.png" />
+  <link rel="icon" type="image/png" href="app-icon-new.png" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://unpkg.com/split-type@0.3.4/dist/split-type.min.js"></script>
@@ -64,6 +64,7 @@
       padding: 8px 20px; font-size: 0.875rem; font-weight: 600;
       cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
       transition: opacity 0.2s, transform 0.2s;
+      text-decoration: none; display: inline-flex; align-items: center;
     }
     .nav-cta:hover { opacity: 0.88; transform: translateY(-1px); }
 
@@ -126,6 +127,7 @@
       cursor: pointer; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
       transition: transform 0.2s, box-shadow 0.2s;
       box-shadow: 0 0 30px rgba(99,102,241,0.35);
+      text-decoration: none;
     }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(99,102,241,0.5); }
     .btn-secondary {
@@ -139,105 +141,31 @@
     .btn-secondary:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
     .hero-visual { position: relative; display: flex; justify-content: center; align-items: center; }
 
-    /* ─── Fake macOS menu bar + editor ─── */
-    .mac-chrome {
+    /* ─── Hero screenshots ─── */
+    .screenshot-area {
       position: relative;
-      background: rgba(30,30,36,0.85);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px;
+      width: 100%; max-width: 600px;
+      aspect-ratio: 600 / 480;
+    }
+    .screenshot-frame {
+      background: rgba(13,17,23,0.95);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06) inset;
-      backdrop-filter: blur(20px);
-      width: 100%; max-width: 580px;
-      transform: perspective(1200px) rotateX(8deg) rotateY(-5deg);
-      transition: transform 0.4s ease;
+      box-shadow: 0 0 60px rgba(99,102,241,0.15), 0 20px 40px rgba(0,0,0,0.5);
+      width: 100%; height: 100%;
+      position: relative;
     }
-    .mac-chrome:hover { transform: perspective(1200px) rotateX(2deg) rotateY(-1deg); }
-    .mac-titlebar {
-      background: rgba(44,44,52,0.9);
-      padding: 10px 14px; display: flex; align-items: center; gap: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .traffic { width: 12px; height: 12px; border-radius: 50%; }
-    .traffic-r { background: #FF5F57; }
-    .traffic-y { background: #FEBC2E; }
-    .traffic-g { background: #28C840; }
-    .mac-title { flex: 1; text-align: center; font-size: 0.75rem; color: rgba(255,255,255,0.45); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif; }
-    .fake-desktop {
-      background: #1c1c1e;
-      min-height: 260px; position: relative; overflow: hidden;
-    }
-    .menu-bar {
-      background: rgba(40,40,48,0.95);
-      height: 28px; display: flex; align-items: center;
-      padding: 0 12px; gap: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
-    }
-    .menu-item {
-      font-size: 0.72rem; color: rgba(255,255,255,0.7);
-      padding: 0 10px; height: 100%; display: flex; align-items: center;
-      cursor: default; position: relative;
-    }
-    .menu-item.active { color: #fff; background: rgba(99,102,241,0.25); }
-    .menu-item.logo-menu { font-weight: 700; color: var(--accent-1); letter-spacing: -0.5px; }
-    .menu-spacer { flex: 1; }
-    .menu-bar-icons { display: flex; align-items: center; gap: 8px; padding: 0 8px; }
-    .menu-icon { font-size: 0.8rem; }
-    .editor-popup {
-      position: absolute; top: 32px; right: 60px;
-      width: 340px;
-      background: rgba(30,30,36,0.92);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      backdrop-filter: blur(24px);
+    .screenshot-main {
+      width: 100%; height: 100%;
+      border-radius: 10px;
       overflow: hidden;
-      animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.85) translateY(-10px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
+    .screenshot-main img {
+      width: 100%; height: 100%;
+      object-fit: contain;
     }
-    .popup-header {
-      background: rgba(44,44,52,0.95);
-      padding: 10px 14px; display: flex; align-items: center; gap: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .popup-title { flex: 1; font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.8); }
-    .popup-btn { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; transition: background 0.15s; }
-    .popup-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
-    .popup-toolbar { background: rgba(36,36,44,0.8); padding: 6px 12px; display: flex; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .popup-tool { font-size: 0.7rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.15s; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif; }
-    .popup-tool:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
-    .popup-tool.active { color: var(--accent-1); background: rgba(99,102,241,0.15); }
-    .popup-editor {
-      padding: 12px 14px; font-family: "SF Mono", "Monaco", "Menlo", "PingFang SC", "Hiragino Sans GB", monospace; font-size: 0.8rem;
-      color: rgba(255,255,255,0.85); line-height: 1.8; min-height: 120px;
-    }
-    .popup-editor .md-h1 { color: #E2E8F0; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
-    .popup-editor .md-h2 { color: #CBD5E1; font-size: 0.95rem; font-weight: 600; margin-top: 8px; margin-bottom: 4px; }
-    .popup-editor .md-bold { color: #F8FAFC; font-weight: 700; }
-    .popup-editor .md-italic { color: #94A3B8; font-style: italic; }
-    .popup-editor .md-code { background: rgba(99,102,241,0.15); color: #A5B4FC; border-radius: 4px; padding: 0 4px; }
-    .popup-editor .md-check { color: #34D399; text-decoration: line-through; }
-    .popup-editor .md-ul { color: #F472B6; }
-    .popup-cursor { display: inline-block; width: 2px; height: 14px; background: var(--accent-1); vertical-align: middle; animation: blink 1.1s step-end infinite; margin-left: 1px; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-    .panel-2 {
-      position: absolute; top: 80px; right: 20px;
-      width: 280px;
-      background: rgba(30,30,36,0.88);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      backdrop-filter: blur(24px);
-      overflow: hidden;
-      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;
-    }
-    .panel-2-header { background: rgba(44,44,52,0.9); padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .panel-2-title { flex: 1; font-size: 0.7rem; color: rgba(255,255,255,0.6); }
-    .panel-2-editor { padding: 10px 12px; font-family: "SF Mono", "Monaco", "Menlo", "PingFang SC", "Hiragino Sans GB", monospace; font-size: 0.75rem; color: rgba(255,255,255,0.75); line-height: 1.7; min-height: 80px; }
 
     /* ─── Sections ─── */
     section { padding: 100px 48px; position: relative; }
@@ -361,10 +289,10 @@
 
 <!-- ─── Nav ─── -->
 <nav>
-  <div class="nav-logo"><img src="app-icon.png" width="26" height="26" style="border-radius:6px;vertical-align:middle;margin-right:6px;" /><span>Tmpspace</span></div>
+  <div class="nav-logo"><img src="app-icon-new.png" width="26" height="26" style="border-radius:6px;vertical-align:middle;margin-right:6px;" /><span>Tmpspace</span></div>
   <ul class="nav-links">
   </ul>
-  <button class="nav-cta" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">下载 Mac 版</button>
+  <a href="Tmpspace-v1.6.2.dmg" download class="nav-cta">下载 Mac 版</a>
 </nav>
 
 <!-- ─── Hero ─── -->
@@ -386,62 +314,10 @@
       </p>
     </div>
     <div class="hero-visual">
-      <div class="mac-chrome" id="mac-chrome">
-        <div class="mac-titlebar">
-          <div class="traffic traffic-r"></div>
-          <div class="traffic traffic-y"></div>
-          <div class="traffic traffic-g"></div>
-          <div class="mac-title">Tmpspace</div>
-        </div>
-        <div class="fake-desktop">
-          <div class="menu-bar" id="menu-bar">
-            <div class="menu-item logo-menu" id="logo-item" onclick="togglePopup()">Tmpspace</div>
-            <div class="menu-item" id="menu-file">文件</div>
-            <div class="menu-item">编辑</div>
-            <div class="menu-item">视图</div>
-            <div class="menu-item">窗口</div>
-            <div class="menu-item">帮助</div>
-            <div class="menu-spacer"></div>
-            <div class="menu-bar-icons">
-              <span class="menu-icon">🔋</span>
-              <span class="menu-icon">📶</span>
-              <span class="menu-icon">🔭</span>
-              <span id="menu-clock" class="menu-item" style="font-size:0.72rem;padding:0 6px;">--:--</span>
-            </div>
-          </div>
-          <div class="editor-popup" id="editor-popup">
-            <div class="popup-header">
-              <div class="popup-title">临时编辑框</div>
-              <button class="popup-btn" onclick="togglePopup()">最小化</button>
-            </div>
-            <div class="popup-toolbar">
-              <button class="popup-tool active">B</button>
-              <button class="popup-tool"><em>I</em></button>
-              <button class="popup-tool" style="color:#F472B6">• 列表</button>
-              <button class="popup-tool">1. 有序</button>
-              <button class="popup-tool">☐ 待办</button>
-              <button class="popup-tool" style="color:#60A5FA">&lt;/&gt;</button>
-            </div>
-            <div class="popup-editor">
-              <span class="md-h1"># 今日灵感</span><br/>
-              <span class="md-h2">## 待办事项</span>
-              <span class="md-check">☐ 调研竞品</span><br/>
-              <span>☐ 优化菜单栏动效</span><br/><br/>
-              <span class="md-code">```js</span><br/>
-              <span class="md-bold">const</span> app = <span style="color:#34D399">"临时空间"</span>;<br/>
-              <span class="md-code">```</span><br/>
-              <span class="popup-cursor"></span>
-            </div>
-          </div>
-          <div class="panel-2" id="panel-2">
-            <div class="panel-2-header">
-              <div class="panel-2-title">编辑框 2</div>
-              <button class="popup-btn">×</button>
-            </div>
-            <div class="panel-2-editor">
-              <span class="md-italic" style="color:#FDE68A">// 临时代码片段</span><br/>
-              <span style="color:#A78BFA">fetch</span>(<span style="color:#34D399">'/api/data'</span>)<br/>
-              &nbsp;&nbsp;.<span style="color:#60A5FA">then</span>(r => r.<span style="color:#60A5FA">json</span>())
+        <div class="screenshot-area" id="screenshot-area">
+          <div class="screenshot-frame">
+            <div class="screenshot-main">
+              <img src="产品截图/01.png" alt="Tmpspace 主编辑面板" />
             </div>
           </div>
         </div>
@@ -457,20 +333,17 @@
     <p class="section-sub" style="text-align:center;max-width:560px;margin:0 auto 64px;">有段内容需要编辑、暂存、保留，有文件需要暂存，无需打开各种应用，扔到临时空间就好了。</p>
     <div class="flow-steps">
       <div class="flow-step reveal">
-        <div class="step-num">01</div>
-        <span class="step-icon">⚡</span>
+        <span class="step-icon">⌨️</span>
         <div class="step-title">按快捷键呼出/隐藏</div>
         <div class="step-desc">按下 <span class="step-kbd">option + shift + s</span>，唤起编辑框。</div>
       </div>
       <div class="flow-step reveal">
-        <div class="step-num">02</div>
-        <span class="step-icon">✏️</span>
+        <span class="step-icon">✨</span>
         <div class="step-title">随手记录内容</div>
         <div class="step-desc">Markdown 语法实时渲染，支持列表、待办、代码块。输入内容自动保存，关闭面板后不丢失任何内容。</div>
       </div>
       <div class="flow-step reveal">
-        <div class="step-num">03</div>
-        <span class="step-icon">🙈</span>
+        <span class="step-icon">🗂️</span>
         <div class="step-title">文件暂存</div>
         <div class="step-desc">拖拽文件到编辑区及文件存入暂存空间，后续随时调用。</div>
       </div>
@@ -505,17 +378,17 @@
   <h2 class="cta-title">随时编辑，<br/><span class="accent">随手隐藏</span></h2>
   <p class="cta-sub"></p>
   <div class="cta-buttons">
-    <button class="btn-primary">
+    <a href="Tmpspace-v1.6.2.dmg" download class="btn-primary">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       下载 Mac 版
-    </button>
+    </a>
   </div>
 </section>
 
 <!-- ─── Footer ─── -->
 <footer>
   <div>
-    <div class="footer-logo"><img src="app-icon.png" width="20" height="20" style="border-radius:5px;vertical-align:middle;margin-right:6px;" /><span class="accent">Tmpspace</span> 临时空间</div>
+    <div class="footer-logo"><img src="app-icon-new.png" width="20" height="20" style="border-radius:5px;vertical-align:middle;margin-right:6px;" /><span class="accent">Tmpspace</span> 临时空间</div>
   </div>
   <ul class="footer-links">
     <li><a href="#" onclick="openPrivacyModal();return false;">隐私政策</a></li>
@@ -568,31 +441,6 @@
     if (e.target === this) closePrivacyModal();
   });
 
-  // ─── Clock ───
-  function updateClock() {
-    const el = document.getElementById('menu-clock');
-    if (el) {
-      const now = new Date();
-      const h = String(now.getHours()).padStart(2,'0');
-      const m = String(now.getMinutes()).padStart(2,'0');
-      el.textContent = h + ':' + m;
-    }
-  }
-  updateClock();
-  setInterval(updateClock, 10000);
-
-  // ─── Toggle popup ───
-  let popupVisible = true;
-  function togglePopup() {
-    const popup = document.getElementById('editor-popup');
-    const panel2 = document.getElementById('panel-2');
-    const logo = document.getElementById('logo-item');
-    popupVisible = !popupVisible;
-    if (popup) popup.style.display = popupVisible ? 'block' : 'none';
-    if (panel2) panel2.style.display = popupVisible ? 'block' : 'none';
-    if (logo) logo.classList.toggle('active', popupVisible);
-  }
-
   // ─── Cursor glow ───
   const glow = document.getElementById('cursor-glow');
   let glowX = window.innerWidth / 2, glowY = window.innerHeight / 2;
@@ -624,7 +472,7 @@
     { opacity: 0, y: 20 },
     { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', delay: 0.8 }
   );
-  gsap.fromTo('.mac-chrome',
+  gsap.fromTo('.screenshot-area',
     { opacity: 0, x: 60, scale: 0.95 },
     { opacity: 1, x: 0, scale: 1, duration: 1, ease: 'power3.out', delay: 0.3 }
   );
