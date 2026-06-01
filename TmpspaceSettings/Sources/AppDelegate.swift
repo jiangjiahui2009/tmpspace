@@ -65,18 +65,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             modifiers: savedModifiers
         )
 
-        // ── Quick Move shortcut ──────────────────────────
-        let savedQuickCopyKey = UserDefaults.standard.string(forKey: "quickCopyShortcutKey")
-            ?? Constants.defaultQuickCopyKey
-        let savedQuickCopyModifiersRaw = UInt(
-            UserDefaults.standard.integer(forKey: "quickCopyShortcutModifiers")
-        )
-        let savedQuickCopyModifiers = NSEvent.ModifierFlags(rawValue: savedQuickCopyModifiersRaw)
-
-        GlobalShortcutManager.shared.registerQuickCopyShortcut(
-            key: savedQuickCopyKey,
-            modifiers: savedQuickCopyModifiers
-        )
+        // ── Quick Move shortcut (disabled for App Store) ──
+        // App Store rejects com.apple.security.temporary-exception.apple-events
+        // which is needed for AppleScript-to-Finder. Cmd+; is not registered.
 
         // Re-register the shortcut when the user changes it in Settings.
         NotificationCenter.default.addObserver(
@@ -89,16 +80,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // ── Quick Move shortcut re-registration ─────────
-        NotificationCenter.default.addObserver(
-            forName: Notification.Name("GlobalQuickCopyShortcutDidChange"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.reregisterQuickCopyShortcut()
-            }
-        }
+        // ── Quick Move shortcut re-registration (disabled for App Store) ──
 
         // Initialize the ThemeManager to begin observing appearance changes.
         _ = ThemeManager.shared
@@ -219,16 +201,20 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         GlobalShortcutManager.shared.registerShortcut(key: key, modifiers: modifiers)
     }
 
-    /// Re-register the quick copy shortcut from the current UserDefaults values.
-    private func reregisterQuickCopyShortcut() {
-        let key = UserDefaults.standard.string(forKey: "quickCopyShortcutKey") ?? Constants.defaultQuickCopyKey
-        let modifiersRaw = UInt(
-            UserDefaults.standard.integer(forKey: "quickCopyShortcutModifiers")
-        )
-        let modifiers = NSEvent.ModifierFlags(rawValue: modifiersRaw)
-
-        GlobalShortcutManager.shared.registerQuickCopyShortcut(key: key, modifiers: modifiers)
-    }
+    // MARK: - Quick Copy (disabled for App Store)
+    //
+    // App Store rejects the com.apple.security.temporary-exception.apple-events
+    // entitlement required for AppleScript-to-Finder. The Cmd+; Quick Move
+    // shortcut is therefore not available in the App Store build.
+    //
+    // private func reregisterQuickCopyShortcut() {
+    //     let key = UserDefaults.standard.string(forKey: "quickCopyShortcutKey") ?? Constants.defaultQuickCopyKey
+    //     let modifiersRaw = UInt(
+    //         UserDefaults.standard.integer(forKey: "quickCopyShortcutModifiers")
+    //     )
+    //     let modifiers = NSEvent.ModifierFlags(rawValue: modifiersRaw)
+    //     GlobalShortcutManager.shared.registerQuickCopyShortcut(key: key, modifiers: modifiers)
+    // }
 }
 
 // MARK: - Notification Names (for Phase 2 wiring)

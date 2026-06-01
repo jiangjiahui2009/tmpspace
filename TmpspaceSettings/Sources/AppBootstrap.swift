@@ -80,12 +80,9 @@ final class AppBootstrap: NSObject {
             }
         }
 
-        // ── Quick Move Shortcut ─────────────────────────
-        GlobalShortcutManager.shared.onQuickCopyPressed = { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.handleQuickMoveFiles()
-            }
-        }
+        // ── Quick Move Shortcut (disabled for App Store) ──
+        // App Store rejects com.apple.security.temporary-exception.apple-events
+        // which is required for the AppleScript-to-Finder call in handleQuickMoveFiles().
 
         // ── Notifications ───────────────────────────────────────
         NotificationCenter.default.addObserver(
