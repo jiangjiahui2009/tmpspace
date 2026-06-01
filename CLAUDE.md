@@ -1,6 +1,6 @@
 # tmpspace
 
-macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。当前基线 v1.6。
+macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。当前基线 v1.6.2。
 
 ## 模块架构
 
@@ -45,6 +45,24 @@ swift build
 ## v1.6 新增
 
 - **i18n 国际化**：根据系统语言自动切换中文/英文。使用 `String(localized:)` + `.xcstrings`。辅助方法 `Txt.str()` / `Txt.text()` 在 `TmpspaceCore/Sources/Txt.swift`，翻译在 `TmpspaceCore/Sources/Resources/Localizable.xcstrings`。
+
+## v1.6.1 新增
+
+- **分类随机图标**：每个图标分类最前面加随机骰子按钮，选中后该类别内随机选择图标。
+- **偏好快捷键展示**：偏好设置中显示 Cmd+;（快速移动）和 Cmd+L（Todo）快捷键（只读）。
+- **启动默认开启**：launchAtLogin 默认值改为 true。
+
+## v1.6.2 修复
+
+- **App Store 合规**：
+  - 添加 Apple Events 沙盒临时例外授权（`com.apple.finder`），修复 Cmd+; 在沙盒中失效的问题。
+  - 移除未使用的 WebKit 私有 SPI（`sel_getUid`/`unsafeBitCast`/`drawsBackground`）。
+  - 清理硬编码的开发者 Desktop 路径。
+- **Xcode .app 构建**：
+  - Run Script 将 SPM 资源从 .bundle 提取到 `Contents/Resources/`，根目录不再有未签名的 .bundle 文件。
+  - 构建时自动生成 dSYM 并复制到 archive，解决 App Store 上传缺少符号文件的问题。
+- **Bundle.module 安全化**：`Bundle.module` 改用 `Bundle(path:)` 按需加载，避免 .bundle 不存在时 crash。
+- **图标加载回退**：`loadTemplateImage` 依次尝试 `Bundle.main`（扁平图标）和 module bundle（分类子目录），修复 Xcode 构建下分类图标不显示的问题。
 
 ## 已知坑点
 

@@ -146,28 +146,6 @@ private final class EditorWebView: WKWebView, WKNavigationDelegate {
     }
 }
 
-// MARK: - WebKit SPI
-
-private protocol WebKitConfigSPI: NSObject {}
-extension WKWebViewConfiguration: WebKitConfigSPI {}
-extension WKPreferences: WebKitConfigSPI {}
-
-extension WebKitConfigSPI {
-    @discardableResult
-    func setBoolValue(_ value: Bool, forSelector selectorName: String) -> Bool {
-        let selector = sel_getUid(selectorName)
-        guard responds(to: selector) else {
-            return false
-        }
-        let setValue = unsafeBitCast(
-            method(for: selector),
-            to: (@convention(c) (NSObject, Selector, Bool) -> Void).self
-        )
-        setValue(self, selector, value)
-        return true
-    }
-}
-
 /// Logger bridge — since EditorViewController is in TmpspaceEditor and
 /// DebugLog is in TmpspaceMenuBar, we log via a simple file write.
 func editorLog(_ msg: String) {
@@ -338,8 +316,6 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
         let webView = EditorWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = webView
         webView.allowsMagnification = true
-        // Debug: set a visible background to confirm the WKWebView renders
-        webView.setValue(true, forKey: "drawsBackground")
 
         // 5. Bridge (handles JS <-> Swift communication)
         let bridge = EditorBridge(webView: webView)
@@ -419,7 +395,8 @@ public final class EditorViewController: NSViewController, EditorProviderProtoco
             guard settings.taskToggleSound else { return }
             // Try the bundled notify.wav first, then system "Pop", then haptics.
             var played = false
-            if let url = (Bundle.main.url(forResource: "notify", withExtension: "wav") ?? Bundle.module.url(forResource: "notify", withExtension: "wav")),
+            let moduleBundle = Bundle(path: Bundle.main.bundleURL.appendingPathComponent("TmpspaceEditor_TmpspaceEditor.bundle").path)
+            if let url = (Bundle.main.url(forResource: "notify", withExtension: "wav") ?? moduleBundle?.url(forResource: "notify", withExtension: "wav")),
                let sound = NSSound(contentsOf: url, byReference: true) {
                 sound.play()
                 played = true

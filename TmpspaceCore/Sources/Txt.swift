@@ -5,13 +5,17 @@ import SwiftUI
 public enum Txt {
 
     /// In Xcode .app archives the main bundle contains all resources;
-    /// in SPM dev builds each module has its own resource bundle (Bundle.module).
-    /// We probe Bundle.main first to avoid the Bundle.module crash in .app builds.
+    /// in SPM dev builds each module has its own resource bundle.
+    /// We probe Bundle.main first; the module bundle is loaded via Bundle(path:)
+    /// so we get nil instead of a crash when it doesn't exist.
     private static let bundle: Bundle = {
         if Bundle.main.url(forResource: "Localizable", withExtension: "xcstrings") != nil {
             return Bundle.main
         }
-        return Bundle.module
+        if let moduleBundle = Bundle(path: Bundle.main.bundleURL.appendingPathComponent("TmpspaceCore_TmpspaceCore.bundle").path) {
+            return moduleBundle
+        }
+        return Bundle.main
     }()
 
     /// Returns a localised `String`.

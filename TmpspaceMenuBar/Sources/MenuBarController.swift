@@ -558,24 +558,27 @@ public final class MenuBarController: NSObject, MenuBarManagerProtocol, NSMenuDe
         return image
     }
 
-    /// The bundle containing menu bar icon resources.
-    /// In Xcode .app builds icons are in Bundle.main;
-    /// in SPM dev builds they're in Bundle.module (the TmpspaceMenuBar module bundle).
-    private static let resourceBundle: Bundle = {
-        if Bundle.main.path(forResource: "tmp", ofType: "svg", inDirectory: "icon") != nil {
-            return Bundle.main
-        }
-        return Bundle.module
-    }()
+    /// Try to find an icon path in the given bundle. Returns nil if not found.
+    private static func iconPath(baseName: String, ext: String, directory: String, in bundle: Bundle) -> String? {
+        return bundle.path(forResource: baseName, ofType: ext, inDirectory: directory)
+    }
 
     /// Load a template image from the TmpspaceMenuBar resource bundle.
     /// Tries PNG first (sharper at small sizes), then falls back to SVG.
+    /// In Xcode .app builds, flat icons are in Bundle.main while categorized icons
+    /// (with subdirectories) are in Bundle.module — we try both.
     public static func loadTemplateImage(_ name: String) -> NSImage? {
         let directory = (name as NSString).deletingLastPathComponent
         let baseName = (name as NSString).lastPathComponent
 
         for ext in ["png", "svg"] {
-            guard let path = resourceBundle.path(forResource: baseName, ofType: ext, inDirectory: directory) else {
+            // Try Bundle.main first (icons copied to .app/Contents/Resources/),
+            // then the module bundle (SPM dev builds, or .app root in some packaging modes).
+            // Use Bundle(path:) for the module bundle so it returns nil instead of crashing
+            // when the bundle doesn't exist at the expected path.
+            let moduleBundle = Bundle(path: Bundle.main.bundleURL.appendingPathComponent("TmpspaceMenuBar_TmpspaceMenuBar.bundle").path)
+            guard let path = iconPath(baseName: baseName, ext: ext, directory: directory, in: Bundle.main)
+                    ?? moduleBundle.flatMap({ iconPath(baseName: baseName, ext: ext, directory: directory, in: $0) }) else {
                 continue
             }
 
