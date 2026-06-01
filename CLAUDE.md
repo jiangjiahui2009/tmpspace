@@ -1,6 +1,6 @@
 # tmpspace
 
-macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。当前基线 v1.6.2。
+macOS 菜单栏浮动 Markdown 编辑器。SPM 项目，Swift 6，macOS 15+。当前基线 v1.7。
 
 ## 模块架构
 
@@ -51,6 +51,12 @@ swift build
 - **分类随机图标**：每个图标分类最前面加随机骰子按钮，选中后该类别内随机选择图标。
 - **偏好快捷键展示**：偏好设置中显示 Cmd+;（快速移动）和 Cmd+L（Todo）快捷键（只读）。
 - **启动默认开启**：launchAtLogin 默认值改为 true。
+
+## v1.7 修复
+
+- **Xcode Run 修复**：main.swift 改用 `@main struct`，移除顶层代码；Xcode scheme 添加 `PathRunnable` 修复构建后不自动启动的问题。
+- **App Store 合规**：移除 `temporary-exception.apple-events` 授权，禁用 Cmd+; Quick Move 功能。
+- **CFBundleDevelopmentRegion** 改为 `zh-Hans`，与 `.xcstrings` 源语言一致。
 
 ## v1.6.2 修复
 
