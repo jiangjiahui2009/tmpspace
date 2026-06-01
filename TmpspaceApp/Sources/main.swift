@@ -1,10 +1,10 @@
 import AppKit
-import TmpspaceCore
 
 // When built by SPM (swift build), TmpspaceSettings is available as a linked
 // module. When built by Xcode (which only compiles the stub for code signing),
 // the module is absent — fall back to plain NSApplicationMain.
 #if canImport(TmpspaceSettings)
+import TmpspaceCore
 import TmpspaceSettings
 
 /// Lightweight target for menu items that post notifications instead of
@@ -91,12 +91,22 @@ private func buildMainMenu() -> NSMenu {
     return mainMenu
 }
 
-let app = NSApplication.shared
-app.setActivationPolicy(.regular)
-app.mainMenu = buildMainMenu()
-let delegate = AppDelegate()
-app.delegate = delegate
-app.run()
+@main
+struct TmpspaceMain {
+    static func main() {
+        let app = NSApplication.shared
+        app.setActivationPolicy(.regular)
+        app.mainMenu = buildMainMenu()
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.run()
+    }
+}
 #else
-_ = NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
+@main
+struct TmpspaceMain {
+    static func main() {
+        _ = NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
+    }
+}
 #endif
