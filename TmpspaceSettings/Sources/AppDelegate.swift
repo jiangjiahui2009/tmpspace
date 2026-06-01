@@ -110,13 +110,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         if let bundled = Bundle.main.path(forResource: "dist", ofType: nil) {
             distPath = bundled
         } else {
-            // SPM dev build: look for vendored CoreEditor relative to cwd
+            // SPM dev build: look for vendored CoreEditor via relative + absolute paths
             let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            let home = FileManager.default.homeDirectoryForCurrentUser
             let candidates: [String] = [
                 cwd.appendingPathComponent("../MarkEdit-main/CoreEditor/dist").path,
+                home.appendingPathComponent("Desktop/tmpspace/MarkEdit-main/CoreEditor/dist").path,
             ]
             guard let found = candidates.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
-                fatalError("CoreEditor dist/ not found. Please ensure MarkEdit-main/CoreEditor/dist exists.")
+                fatalError("CoreEditor dist/ not found. Tried: \(candidates.joined(separator: ", "))")
             }
             distPath = found
         }
